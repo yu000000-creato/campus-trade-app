@@ -28,8 +28,8 @@ public class ChatController {
         return Result.success(chatService.getConversation(userId, otherUserId));
     }
 
-    @PostMapping
-    public Result<ChatResponse> sendMessage(@RequestBody ChatSendRequest request) {
-        return Result.success(chatService.sendMessage(request.getSenderId(), request.getReceiverId(), request.getContent()));
+    @PostMapping("/{senderId}")
+    public Result<ChatResponse> sendMessage(@PathVariable Long senderId, @RequestBody ChatSendRequest request) {
+        return Result.success(chatService.sendMessage(senderId, request.getReceiverId(), request.getContent()));
     }
 }

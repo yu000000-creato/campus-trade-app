@@ -2,7 +2,6 @@ package com.example.myapplication.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 public class Item implements Serializable {
 
@@ -18,7 +17,7 @@ public class Item implements Serializable {
     private String images;
     private Integer status;
     private Integer viewCount;
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     public Item() {}
 
@@ -118,11 +117,11 @@ public class Item implements Serializable {
         this.viewCount = viewCount;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 }

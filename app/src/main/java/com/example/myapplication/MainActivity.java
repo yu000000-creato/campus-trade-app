@@ -162,17 +162,34 @@ public class MainActivity extends AppCompatActivity {
     private void loadItems() {
         executorService.execute(() -> {
             try {
+                Log.d("MainActivity", "开始加载商品列表...");
                 String jsonResponse = apiService.getRaw("items?page=1&size=10");
-                Gson gson = new Gson();
-                Result<PageResult<Item>> result = gson.fromJson(jsonResponse,
+                Log.d("MainActivity", "商品列表响应: " + jsonResponse);
+                // 使用 ApiService 中配置好的 Gson 实例
+                Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
                         new TypeToken<Result<PageResult<Item>>>(){}.getType());
 
-                if (result != null && result.isSuccess() && result.getData() != null) {
-                    List<Item> items = result.getData().getList();
-                    runOnUiThread(() -> displayItems(items));
+                if (result != null) {
+                    if (result.isSuccess()) {
+                        if (result.getData() != null && result.getData().getList() != null) {
+                            List<Item> items = result.getData().getList();
+                            Log.d("MainActivity", "成功加载商品数量: " + items.size());
+                            runOnUiThread(() -> displayItems(items));
+                        } else {
+                            Log.d("MainActivity", "商品数据为空");
+                            runOnUiThread(() -> displayItems(null));
+                        }
+                    } else {
+                        Log.e("MainActivity", "API返回失败: " + result.getMessage());
+                        runOnUiThread(() -> Toast.makeText(MainActivity.this, "加载失败: " + result.getMessage(), Toast.LENGTH_SHORT).show());
+                    }
+                } else {
+                    Log.e("MainActivity", "API响应为空");
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "网络响应异常", Toast.LENGTH_SHORT).show());
                 }
             } catch (Exception e) {
                 Log.e("MainActivity", "Load items error: " + e.getMessage());
+                runOnUiThread(() -> Toast.makeText(MainActivity.this, "加载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         });
     }
@@ -182,8 +199,8 @@ public class MainActivity extends AppCompatActivity {
             try {
                 String url = "items/search?keyword=" + java.net.URLEncoder.encode(keyword, "UTF-8") + "&page=1&size=10";
                 String jsonResponse = apiService.getRaw(url);
-                Gson gson = new Gson();
-                Result<PageResult<Item>> result = gson.fromJson(jsonResponse,
+                // 使用 ApiService 中配置好的 Gson 实例
+                Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
                         new TypeToken<Result<PageResult<Item>>>(){}.getType());
 
                 if (result != null && result.isSuccess() && result.getData() != null) {
@@ -200,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
         executorService.execute(() -> {
             try {
                 String jsonResponse = apiService.getRaw("items/category/" + categoryId + "?page=1&size=10");
-                Gson gson = new Gson();
-                Result<PageResult<Item>> result = gson.fromJson(jsonResponse,
+                // 使用 ApiService 中配置好的 Gson 实例
+                Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
                         new TypeToken<Result<PageResult<Item>>>(){}.getType());
 
                 if (result != null && result.isSuccess() && result.getData() != null) {

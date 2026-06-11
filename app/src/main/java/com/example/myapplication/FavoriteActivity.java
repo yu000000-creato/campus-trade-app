@@ -53,9 +53,9 @@ public class FavoriteActivity extends AppCompatActivity {
         executorService.execute(() -> {
             try {
                 String jsonResponse = apiService.getRaw("favorites/user/" + userId + "?page=1&size=10");
-                Gson gson = new Gson();
-                Result<PageResult<Item>> result = 
-                    gson.fromJson(jsonResponse, new TypeToken<Result<PageResult<Item>>>() {}.getType());
+                // 使用 ApiService 中配置好的 Gson 实例
+                Result<PageResult<Item>> result = apiService.getGson().fromJson(
+                    jsonResponse, new TypeToken<Result<PageResult<Item>>>() {}.getType());
 
                 if (result != null && result.isSuccess() && result.getData() != null) {
                     List<Item> items = result.getData().getList();
@@ -65,6 +65,12 @@ public class FavoriteActivity extends AppCompatActivity {
                 Log.e("FavoriteActivity", "Load favorites error: " + e.getMessage());
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadFavorites();
     }
 
     private void displayItems(List<Item> items) {

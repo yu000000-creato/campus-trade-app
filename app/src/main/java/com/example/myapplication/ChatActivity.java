@@ -15,6 +15,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.example.myapplication.model.ChatResponse;
+import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
 import com.google.gson.Gson;
 
@@ -43,6 +45,12 @@ public class ChatActivity extends AppCompatActivity {
         otherUserId = getIntent().getLongExtra("otherUserId", 0);
         otherUserName = getIntent().getStringExtra("otherUserName");
 
+        // 支持从商品详情页跳转过来的参数
+        if (otherUserId == 0) {
+            otherUserId = getIntent().getLongExtra("seller_id", 0);
+            otherUserName = getIntent().getStringExtra("seller_name");
+        }
+
         getSupportActionBar().setTitle("与 " + otherUserName + " 聊天");
 
         recyclerView = findViewById(R.id.recyclerView);
@@ -61,16 +69,11 @@ public class ChatActivity extends AppCompatActivity {
     private void loadMessages() {
         new Thread(() -> {
             try {
-                Result<List<ChatResponse>> result = apiService.get("chats/conversation/" + userId + "/" + otherUserId, Object.class);
+                Result<List<ChatResponse>> result = apiService.getList("chats/conversation/" + userId + "/" + otherUserId, ChatResponse.class);
                 
                 if (result.isSuccess() && result.getData() != null) {
-                    Gson gson = new Gson();
-                    String dataJson = gson.toJson(result.getData());
-                    List<ChatResponse> responses = gson.fromJson(dataJson, 
-                        com.google.gson.internal.$Gson$Types.newParameterizedTypeWithOwner(null, List.class, ChatResponse.class));
-                    
                     chatList.clear();
-                    for (ChatResponse res : responses) {
+                    for (ChatResponse res : result.getData()) {
                         chatList.add(new ChatItem(res.getSenderId(), res.getContent()));
                     }
                 }
@@ -91,8 +94,8 @@ public class ChatActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
-                String jsonBody = "{\"senderId\": " + userId + ", \"receiverId\": " + otherUserId + ", \"content\": \"" + content + "\"}";
-                Result<?> result = apiService.post("chats", jsonBody, Object.class);
+                String jsonBody = "{\"receiverId\": " + otherUserId + ", \"content\": \"" + content + "\"}";
+                Result<?> result = apiService.post("chats/" + userId, jsonBody, Object.class);
                 
                 if (result.isSuccess()) {
                     chatList.add(new ChatItem(userId, content));

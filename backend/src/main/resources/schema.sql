@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS items (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '商品ID',
     user_id BIGINT NOT NULL COMMENT '发布者ID',
+    username VARCHAR(50) COMMENT '发布者用户名',
     category_id BIGINT COMMENT '分类ID',
     title VARCHAR(100) NOT NULL COMMENT '商品标题',
     description TEXT COMMENT '商品描述',

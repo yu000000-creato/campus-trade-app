@@ -4,15 +4,20 @@ import android.util.Log;
 
 import com.example.myapplication.model.Result;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class ApiService {
 
@@ -29,7 +34,9 @@ public class ApiService {
                 .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
                 .writeTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
                 .build();
-        gson = new Gson();
+        gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeTypeAdapter())
+                .create();
     }
 
     public static synchronized ApiService getInstance() {
@@ -37,6 +44,10 @@ public class ApiService {
             instance = new ApiService();
         }
         return instance;
+    }
+
+    public Gson getGson() {
+        return gson;
     }
 
     public String getRaw(String endpoint) throws IOException {
@@ -72,6 +83,28 @@ public class ApiService {
             return gson.fromJson(json, type);
         } catch (IOException e) {
             Log.e("ApiService", "GET Error: " + e.getMessage());
+            return new Result<>(500, "网络异常: " + e.getMessage(), null);
+        }
+    }
+
+    public <T> Result<List<T>> getList(String endpoint, Class<T> clazz) {
+        Request request = new Request.Builder()
+                .url(BASE_URL + endpoint)
+                .get()
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                return new Result<>(500, "网络请求失败", null);
+            }
+            String json = response.body().string();
+            Log.d("ApiService", "GET List Response: " + json);
+            // 使用 ParameterizedType 来处理嵌套泛型 Result<List<T>>
+            java.lang.reflect.Type listType = com.google.gson.internal.$Gson$Types.newParameterizedTypeWithOwner(null, List.class, clazz);
+            java.lang.reflect.Type type = com.google.gson.internal.$Gson$Types.newParameterizedTypeWithOwner(null, Result.class, listType);
+            return gson.fromJson(json, type);
+        } catch (IOException e) {
+            Log.e("ApiService", "GET List Error: " + e.getMessage());
             return new Result<>(500, "网络异常: " + e.getMessage(), null);
         }
     }
@@ -131,6 +164,55 @@ public class ApiService {
         } catch (IOException e) {
             Log.e("ApiService", "POST Form Error: " + e.getMessage());
             return new Result<>(500, "网络异常: " + e.getMessage(), null);
+        }
+    }
+
+    public <T> Result<T> delete(String endpoint, Class<T> clazz) {
+        Request request = new Request.Builder()
+                .url(BASE_URL + endpoint)
+                .delete()
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                return new Result<>(500, "网络请求失败", null);
+            }
+            String json = response.body().string();
+            Log.d("ApiService", "DELETE Response: " + json);
+            // 使用 ParameterizedType 来处理泛型
+            java.lang.reflect.Type type = com.google.gson.internal.$Gson$Types.newParameterizedTypeWithOwner(null, Result.class, clazz);
+            return gson.fromJson(json, type);
+        } catch (IOException e) {
+            Log.e("ApiService", "DELETE Error: " + e.getMessage());
+            return new Result<>(500, "网络异常: " + e.getMessage(), null);
+        }
+    }
+
+    private static class LocalDateTimeTypeAdapter extends com.google.gson.TypeAdapter<LocalDateTime> {
+        private static final java.time.format.DateTimeFormatter FORMATTER = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        @Override
+        public void write(com.google.gson.stream.JsonWriter out, LocalDateTime value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+                return;
+            }
+            out.value(value.format(FORMATTER));
+        }
+
+        @Override
+        public LocalDateTime read(com.google.gson.stream.JsonReader in) throws IOException {
+            if (in.peek() == com.google.gson.stream.JsonToken.NULL) {
+                in.nextNull();
+                return null;
+            }
+            String dateTimeStr = in.nextString();
+            try {
+                return LocalDateTime.parse(dateTimeStr, FORMATTER);
+            } catch (Exception e) {
+                Log.e("ApiService", "LocalDateTime parse error: " + e.getMessage());
+                return null;
+            }
         }
     }
 }

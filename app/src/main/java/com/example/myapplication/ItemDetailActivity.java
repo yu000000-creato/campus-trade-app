@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 public class ItemDetailActivity extends AppCompatActivity {
 
     private TextView tvTitle, tvDesc, tvPrice, tvOriginalPrice, tvSeller, tvViewCount, tvCategory;
-    private Button btnBuy, btnFavorite;
+    private Button btnBuy, btnFavorite, btnChat;
     private ApiService apiService;
     private ExecutorService executorService;
     private Item item;
@@ -44,11 +44,11 @@ public class ItemDetailActivity extends AppCompatActivity {
         tvDesc = findViewById(R.id.tv_desc);
         tvPrice = findViewById(R.id.tv_price);
         tvOriginalPrice = findViewById(R.id.tv_original_price);
-        tvSeller = findViewById(R.id.tv_seller);
         tvViewCount = findViewById(R.id.tv_view_count);
         tvCategory = findViewById(R.id.tv_category);
         btnBuy = findViewById(R.id.btn_buy);
         btnFavorite = findViewById(R.id.btn_favorite);
+        btnChat = findViewById(R.id.btn_chat);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
     }
@@ -83,12 +83,12 @@ public class ItemDetailActivity extends AppCompatActivity {
         tvDesc.setText(item.getDescription() != null ? item.getDescription() : "暂无描述");
         tvPrice.setText("¥" + item.getCurrentPrice());
         tvOriginalPrice.setText("原价: ¥" + (item.getOriginalPrice() != null ? item.getOriginalPrice() : item.getCurrentPrice()));
-        tvSeller.setText("卖家: " + item.getUsername());
         tvViewCount.setText("浏览次数: " + item.getViewCount());
         tvCategory.setText("分类: " + getCategoryName(item.getCategoryId()));
 
         btnBuy.setOnClickListener(v -> createOrder());
         btnFavorite.setOnClickListener(v -> toggleFavorite());
+        btnChat.setOnClickListener(v -> chatWithSeller());
     }
 
     private String getCategoryName(Long categoryId) {
@@ -118,27 +118,34 @@ public class ItemDetailActivity extends AppCompatActivity {
     }
 
     private void toggleFavorite() {
+        // 在操作前记录当前状态，避免异步操作中按钮文字被修改
+        boolean isFavorite = btnFavorite.getText().toString().equals("已收藏");
+        
         executorService.execute(() -> {
             try {
                 String url = "favorites?userId=" + userId + "&itemId=" + item.getId();
-                String jsonResponse;
+                Result<String> result;
                 
-                if (btnFavorite.getText().toString().equals("收藏")) {
-                    jsonResponse = apiService.getRaw(url);
+                if (!isFavorite) {
+                    // 当前未收藏，执行添加收藏
+                    result = apiService.postForm(url, "", String.class);
                 } else {
-                    // 取消收藏需要使用DELETE方法
-                    // 这里简化处理，使用GET模拟
-                    url = url + "&action=remove";
-                    jsonResponse = apiService.getRaw("favorites/user/" + userId);
+                    // 当前已收藏，执行取消收藏
+                    result = apiService.delete("favorites?userId=" + userId + "&itemId=" + item.getId(), String.class);
                 }
 
                 runOnUiThread(() -> {
-                    if (btnFavorite.getText().toString().equals("收藏")) {
-                        btnFavorite.setText("已收藏");
-                        Toast.makeText(ItemDetailActivity.this, "收藏成功", Toast.LENGTH_SHORT).show();
+                    if (result != null && result.isSuccess()) {
+                        if (!isFavorite) {
+                            btnFavorite.setText("已收藏");
+                            Toast.makeText(ItemDetailActivity.this, "收藏成功", Toast.LENGTH_SHORT).show();
+                        } else {
+                            btnFavorite.setText("收藏");
+                            Toast.makeText(ItemDetailActivity.this, "取消收藏成功", Toast.LENGTH_SHORT).show();
+                        }
                     } else {
-                        btnFavorite.setText("收藏");
-                        Toast.makeText(ItemDetailActivity.this, "取消收藏成功", Toast.LENGTH_SHORT).show();
+                        String errorMsg = result != null ? result.getMessage() : "操作失败";
+                        Toast.makeText(ItemDetailActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (Exception e) {
@@ -172,5 +179,20 @@ public class ItemDetailActivity extends AppCompatActivity {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }
+    }
+
+    private void chatWithSeller() {
+        if (item.getUserId().equals(userId)) {
+            Toast.makeText(ItemDetailActivity.this, "不能与自己聊天", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(ItemDetailActivity.this, ChatActivity.class);
+        intent.putExtra("userId", userId);
+        intent.putExtra("seller_id", item.getUserId());
+        intent.putExtra("seller_name", item.getUsername());
+        intent.putExtra("item_id", item.getId());
+        intent.putExtra("item_title", item.getTitle());
+        startActivity(intent);
     }
 }
