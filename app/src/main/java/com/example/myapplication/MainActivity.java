@@ -9,12 +9,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.myapplication.model.Category;
 import com.example.myapplication.model.Item;
 import com.example.myapplication.model.PageResult;
@@ -258,14 +260,44 @@ public class MainActivity extends AppCompatActivity {
             itemLayoutParams.setMargins(0, 0, 0, 12);
             itemLayout.setLayoutParams(itemLayoutParams);
 
-            TextView imagePlaceholder = new TextView(this);
-            imagePlaceholder.setText("📦");
-            imagePlaceholder.setTextSize(48);
-            imagePlaceholder.setGravity(Gravity.CENTER);
-            imagePlaceholder.setBackgroundColor(Color.parseColor("#e2e8f0"));
+            // 使用 ImageView 显示商品图片
+            ImageView ivImage = new ImageView(this);
+            ivImage.setBackgroundColor(Color.TRANSPARENT);  // 设置透明背景
+            ivImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(120, 120);
-            imagePlaceholder.setLayoutParams(imageParams);
+            ivImage.setLayoutParams(imageParams);
+
+            // 加载图片
+            String imageUrl = getFirstImageUrl(item.getImages());
+            Log.d("MainActivity", "商品ID: " + item.getId() + ", 商品名称: " + item.getTitle() + ", 图片URL: " + imageUrl);
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(imageUrl)
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                        .timeout(15000)
+                        .error(R.drawable.ic_launcher_background)
+                        .fallback(R.drawable.ic_launcher_background)
+                        .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@androidx.annotation.Nullable com.bumptech.glide.load.engine.GlideException e, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, boolean isFirstResource) {
+                                Log.e("MainActivity", "Glide加载失败 - 商品: " + item.getTitle() + ", URL: " + imageUrl + ", 错误: " + (e != null ? e.getMessage() : "未知"));
+                                // 尝试使用系统默认图片加载
+                                loadImageWithHttpURLConnection(imageUrl, ivImage);
+                                return true;  // 返回true表示已处理错误
+                            }
+                            
+                            @Override
+                            public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model, com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target, com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                                Log.d("MainActivity", "Glide加载成功 - 商品: " + item.getTitle());
+                                return false;
+                            }
+                        })
+                        .into(ivImage);
+            } else {
+                ivImage.setImageResource(R.drawable.ic_launcher_background);
+            }
 
             LinearLayout infoLayout = new LinearLayout(this);
             infoLayout.setOrientation(LinearLayout.VERTICAL);
@@ -303,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
             infoLayout.addView(tvPrice);
             infoLayout.addView(tvMeta);
 
-            itemLayout.addView(imagePlaceholder);
+            itemLayout.addView(ivImage);
             itemLayout.addView(infoLayout);
 
             itemLayout.setOnClickListener(v -> showItemDetail(item));
@@ -312,10 +344,67 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private String getFirstImageUrl(String imagesJson) {
+        if (imagesJson == null || imagesJson.isEmpty()) {
+            return null;
+        }
+        try {
+            List<String> images = new Gson().fromJson(imagesJson, new TypeToken<List<String>>() {}.getType());
+            if (images != null && !images.isEmpty()) {
+                String imageUrl = images.get(0);
+                // 如果是相对路径，添加服务器基础URL
+                if (imageUrl.startsWith("/")) {
+                    return "http://10.0.2.2:8080" + imageUrl;
+                }
+                return imageUrl;
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "Parse images error: " + e.getMessage());
+        }
+        return null;
+    }
+
     private void showItemDetail(Item item) {
         Intent intent = new Intent(MainActivity.this, ItemDetailActivity.class);
         intent.putExtra("item_id", item.getId());
         startActivity(intent);
+    }
+
+    // 备用图片加载方法 - 使用HttpURLConnection
+    private void loadImageWithHttpURLConnection(final String imageUrl, final ImageView imageView) {
+        executorService.execute(() -> {
+            try {
+                java.net.URL url = new java.net.URL(imageUrl);
+                java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(15000);
+                connection.setReadTimeout(15000);
+                connection.setRequestMethod("GET");
+                
+                int responseCode = connection.getResponseCode();
+                if (responseCode == 200) {
+                    java.io.InputStream inputStream = connection.getInputStream();
+                    final android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeStream(inputStream);
+                    inputStream.close();
+                    
+                    runOnUiThread(() -> {
+                        if (bitmap != null) {
+                            imageView.setImageBitmap(bitmap);
+                            Log.d("MainActivity", "HttpURLConnection加载成功 - URL: " + imageUrl);
+                        } else {
+                            imageView.setImageResource(R.drawable.ic_launcher_background);
+                            Log.e("MainActivity", "HttpURLConnection解码失败 - URL: " + imageUrl);
+                        }
+                    });
+                } else {
+                    Log.e("MainActivity", "HttpURLConnection请求失败 - URL: " + imageUrl + ", 状态码: " + responseCode);
+                    runOnUiThread(() -> imageView.setImageResource(R.drawable.ic_launcher_background));
+                }
+                connection.disconnect();
+            } catch (Exception e) {
+                Log.e("MainActivity", "HttpURLConnection加载失败 - URL: " + imageUrl + ", 错误: " + e.getMessage());
+                runOnUiThread(() -> imageView.setImageResource(R.drawable.ic_launcher_background));
+            }
+        });
     }
 
     @Override
