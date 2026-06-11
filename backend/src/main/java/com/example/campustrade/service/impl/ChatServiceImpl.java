@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -111,7 +112,7 @@ public class ChatServiceImpl implements ChatService {
         
         response.setContent(chat.getContent());
         response.setStatus(chat.getStatus());
-        response.setCreatedAt(chat.getCreatedAt());
+        response.setCreatedAt(chat.getCreatedAt() != null ? chat.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
         return response;
     }
 }

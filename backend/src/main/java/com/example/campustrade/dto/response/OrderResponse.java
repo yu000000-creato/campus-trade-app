@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -25,5 +24,5 @@ public class OrderResponse {
     private String statusText;
     private String address;
     private String remark;
-    private LocalDateTime createdAt;
+    private String createdAt;
 }

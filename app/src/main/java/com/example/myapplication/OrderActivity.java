@@ -9,14 +9,13 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.model.OrderResponse;
 import com.example.myapplication.model.PageResult;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -46,27 +45,46 @@ public class OrderActivity extends AppCompatActivity {
     private void loadUserInfo() {
         SharedPreferences prefs = getSharedPreferences("campus_trade", MODE_PRIVATE);
         userId = prefs.getLong("user_id", 0);
+        Log.d("OrderActivity", "Loaded userId from shared preferences: " + userId);
+        
+        // 测试用：如果没有登录，默认使用用户ID 2（张三）来查看订单
+        if (userId == 0) {
+            userId = 2L;
+            Log.d("OrderActivity", "No user logged in, using default userId: 2");
+        }
     }
 
     private void loadOrders() {
         executorService.execute(() -> {
             try {
-                String jsonResponse = apiService.getRaw("orders/buyer/" + userId + "?page=1&size=10");
-                Gson gson = new Gson();
-                Result<PageResult<Map<String, Object>>> result = 
-                    gson.fromJson(jsonResponse, new TypeToken<Result<PageResult<Map<String, Object>>>>() {}.getType());
+                Log.d("OrderActivity", "Current userId: " + userId);
+                String url = "orders/buyer/" + userId + "?page=1&size=10";
+                Log.d("OrderActivity", "Request URL: " + url);
+                
+                String jsonResponse = apiService.getRaw(url);
+                Log.d("OrderActivity", "API Response: " + jsonResponse);
+                
+                // 使用 ApiService 中配置好的 Gson 实例
+                Result<PageResult<OrderResponse>> result = apiService.getGson().fromJson(
+                    jsonResponse, new TypeToken<Result<PageResult<OrderResponse>>>() {}.getType());
 
+                Log.d("OrderActivity", "Result success: " + (result != null && result.isSuccess()));
+                
                 if (result != null && result.isSuccess() && result.getData() != null) {
-                    List<Map<String, Object>> orders = result.getData().getList();
+                    List<OrderResponse> orders = result.getData().getList();
+                    Log.d("OrderActivity", "Order count: " + orders.size());
                     runOnUiThread(() -> displayOrders(orders));
+                } else {
+                    runOnUiThread(() -> displayOrders(null));
                 }
             } catch (Exception e) {
                 Log.e("OrderActivity", "Load orders error: " + e.getMessage());
+                runOnUiThread(() -> displayOrders(null));
             }
         });
     }
 
-    private void displayOrders(List<Map<String, Object>> orders) {
+    private void displayOrders(List<OrderResponse> orders) {
         llOrders.removeAllViews();
 
         if (orders == null || orders.isEmpty()) {
@@ -80,7 +98,7 @@ public class OrderActivity extends AppCompatActivity {
             return;
         }
 
-        for (Map<String, Object> order : orders) {
+        for (OrderResponse order : orders) {
             LinearLayout orderLayout = new LinearLayout(this);
             orderLayout.setOrientation(LinearLayout.VERTICAL);
             orderLayout.setBackgroundColor(0xFFFFFFFF);
@@ -94,24 +112,24 @@ public class OrderActivity extends AppCompatActivity {
             orderLayout.setLayoutParams(params);
 
             TextView tvOrderNo = new TextView(this);
-            tvOrderNo.setText("订单号: " + order.get("orderNo"));
+            tvOrderNo.setText("订单号: " + order.getOrderNo());
             tvOrderNo.setTextSize(14);
             tvOrderNo.setTextColor(0xFF718096);
 
             TextView tvItem = new TextView(this);
-            tvItem.setText("商品: " + order.get("itemTitle"));
+            tvItem.setText("商品: " + order.getItemTitle());
             tvItem.setTextSize(16);
             tvItem.setTextColor(0xFF000000);
             tvItem.setPadding(0, 8, 0, 0);
 
             TextView tvPrice = new TextView(this);
-            tvPrice.setText("金额: ¥" + order.get("price"));
+            tvPrice.setText("金额: ¥" + order.getPrice());
             tvPrice.setTextSize(16);
             tvPrice.setTextColor(0xFFFF0000);
             tvPrice.setPadding(0, 8, 0, 0);
 
             TextView tvStatus = new TextView(this);
-            tvStatus.setText("状态: " + getStatusText(((Double) order.get("status")).intValue()));
+            tvStatus.setText("状态: " + (order.getStatusText() != null ? order.getStatusText() : getStatusText(order.getStatus())));
             tvStatus.setTextSize(14);
             tvStatus.setTextColor(0xFF6B46C1);
             tvStatus.setPadding(0, 8, 0, 0);

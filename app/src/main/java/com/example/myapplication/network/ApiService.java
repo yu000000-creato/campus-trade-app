@@ -188,6 +188,35 @@ public class ApiService {
         }
     }
 
+    public <T> Result<T> put(String endpoint, String jsonBody, Class<T> clazz) {
+        String fullUrl = BASE_URL + endpoint;
+        Log.d("ApiService", "PUT URL: " + fullUrl);
+        Log.d("ApiService", "PUT Body: " + jsonBody);
+        
+        RequestBody body = RequestBody.create(jsonBody, JSON);
+        Request request = new Request.Builder()
+                .url(fullUrl)
+                .put(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            Log.d("ApiService", "Response Code: " + response.code());
+            if (!response.isSuccessful()) {
+                String errorBody = response.body() != null ? response.body().string() : "null";
+                Log.e("ApiService", "PUT Request failed, code: " + response.code() + ", body: " + errorBody);
+                return new Result<>(response.code(), "请求失败: " + errorBody, null);
+            }
+            String json = response.body().string();
+            Log.d("ApiService", "PUT Response: " + json);
+            // 使用 ParameterizedType 来处理泛型
+            java.lang.reflect.Type type = com.google.gson.internal.$Gson$Types.newParameterizedTypeWithOwner(null, Result.class, clazz);
+            return gson.fromJson(json, type);
+        } catch (IOException e) {
+            Log.e("ApiService", "PUT IOException: " + e.getMessage());
+            return new Result<>(500, "网络异常: " + e.getMessage(), null);
+        }
+    }
+
     private static class LocalDateTimeTypeAdapter extends com.google.gson.TypeAdapter<LocalDateTime> {
         private static final java.time.format.DateTimeFormatter FORMATTER = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 

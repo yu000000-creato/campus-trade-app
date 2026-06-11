@@ -49,11 +49,13 @@ public class ProfileActivity extends AppCompatActivity {
         llLogout.setOnClickListener(v -> logout());
 
         findViewById(R.id.ll_my_items).setOnClickListener(v -> {
-            Toast.makeText(this, "我的商品功能开发中", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ProfileActivity.this, MyItemsActivity.class);
+            startActivity(intent);
         });
 
         findViewById(R.id.ll_settings).setOnClickListener(v -> {
-            Toast.makeText(this, "设置功能开发中", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
+            startActivity(intent);
         });
     }
 

@@ -153,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
         response.setStatusText(getStatusText(order.getStatus()));
         response.setAddress(order.getAddress());
         response.setRemark(order.getRemark());
-        response.setCreatedAt(order.getCreatedAt());
+        response.setCreatedAt(order.getCreatedAt() != null ? order.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
         return response;
     }
 

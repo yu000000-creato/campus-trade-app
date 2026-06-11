@@ -19,6 +19,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
+
 @Service
 @RequiredArgsConstructor
 public class FavoriteServiceImpl implements FavoriteService {
@@ -98,7 +100,7 @@ public class FavoriteServiceImpl implements FavoriteService {
         response.setImages(item.getImages());
         response.setStatus(item.getStatus());
         response.setViewCount(item.getViewCount());
-        response.setCreatedAt(item.getCreatedAt());
+        response.setCreatedAt(item.getCreatedAt() != null ? item.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
         return response;
     }
 }

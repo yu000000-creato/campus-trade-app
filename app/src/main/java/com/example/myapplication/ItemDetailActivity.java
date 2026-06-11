@@ -64,8 +64,8 @@ public class ItemDetailActivity extends AppCompatActivity {
         executorService.execute(() -> {
             try {
                 String jsonResponse = apiService.getRaw("items/" + itemId);
-                Gson gson = new Gson();
-                Result<Item> result = gson.fromJson(jsonResponse, new TypeToken<Result<Item>>() {}.getType());
+                // 使用 ApiService 中配置好的 Gson 实例
+                Result<Item> result = apiService.getGson().fromJson(jsonResponse, new TypeToken<Result<Item>>() {}.getType());
 
                 if (result != null && result.isSuccess() && result.getData() != null) {
                     item = result.getData();
@@ -173,15 +173,36 @@ public class ItemDetailActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
-    }
-
     private void chatWithSeller() {
+        Log.d("ItemDetailActivity", "chatWithSeller called");
+        Log.d("ItemDetailActivity", "userId: " + userId);
+        Log.d("ItemDetailActivity", "item: " + item);
+        
+        // 检查用户是否登录
+        if (userId == 0) {
+            Toast.makeText(this, "请先登录", Toast.LENGTH_SHORT).show();
+            Log.e("ItemDetailActivity", "userId is 0, not logged in");
+            // 跳转到登录页面
+            Intent intent = new Intent(ItemDetailActivity.this, LoginActivity.class);
+            startActivity(intent);
+            return;
+        }
+        
+        if (item == null) {
+            Toast.makeText(this, "商品信息加载失败", Toast.LENGTH_SHORT).show();
+            Log.e("ItemDetailActivity", "item is null");
+            return;
+        }
+        
+        if (item.getUserId() == null) {
+            Toast.makeText(this, "无法获取卖家ID", Toast.LENGTH_SHORT).show();
+            Log.e("ItemDetailActivity", "item.getUserId() is null");
+            return;
+        }
+
+        Log.d("ItemDetailActivity", "sellerId: " + item.getUserId());
+        Log.d("ItemDetailActivity", "sellerName: " + item.getUsername());
+
         if (item.getUserId().equals(userId)) {
             Toast.makeText(ItemDetailActivity.this, "不能与自己聊天", Toast.LENGTH_SHORT).show();
             return;
@@ -189,10 +210,19 @@ public class ItemDetailActivity extends AppCompatActivity {
 
         Intent intent = new Intent(ItemDetailActivity.this, ChatActivity.class);
         intent.putExtra("userId", userId);
-        intent.putExtra("seller_id", item.getUserId());
-        intent.putExtra("seller_name", item.getUsername());
-        intent.putExtra("item_id", item.getId());
-        intent.putExtra("item_title", item.getTitle());
+        intent.putExtra("sellerId", item.getUserId());
+        intent.putExtra("sellerName", item.getUsername());
+        intent.putExtra("itemId", item.getId());
+        intent.putExtra("itemTitle", item.getTitle());
+        Log.d("ItemDetailActivity", "Starting ChatActivity with sellerId: " + item.getUserId());
         startActivity(intent);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+        }
     }
 }

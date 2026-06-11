@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.util.Log;
 
 import com.example.myapplication.model.ChatResponse;
 import com.example.myapplication.model.Result;
@@ -38,32 +40,62 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
+        try {
+            setContentView(R.layout.activity_chat);
 
-        apiService = ApiService.getInstance();
-        userId = getIntent().getLongExtra("userId", 0);
-        otherUserId = getIntent().getLongExtra("otherUserId", 0);
-        otherUserName = getIntent().getStringExtra("otherUserName");
+            apiService = ApiService.getInstance();
+            userId = getIntent().getLongExtra("userId", 0);
+            otherUserId = getIntent().getLongExtra("otherUserId", 0);
+            otherUserName = getIntent().getStringExtra("otherUserName");
 
-        // 支持从商品详情页跳转过来的参数
-        if (otherUserId == 0) {
-            otherUserId = getIntent().getLongExtra("seller_id", 0);
-            otherUserName = getIntent().getStringExtra("seller_name");
+            Log.d("ChatActivity", "userId from intent: " + userId);
+            Log.d("ChatActivity", "otherUserId from intent (otherUserId): " + otherUserId);
+            Log.d("ChatActivity", "otherUserName from intent (otherUserName): " + otherUserName);
+
+            // 支持从商品详情页跳转过来的参数
+            if (otherUserId == 0) {
+                otherUserId = getIntent().getLongExtra("sellerId", 0);
+                otherUserName = getIntent().getStringExtra("sellerName");
+                Log.d("ChatActivity", "otherUserId from intent (sellerId): " + otherUserId);
+                Log.d("ChatActivity", "otherUserName from intent (sellerName): " + otherUserName);
+            }
+
+            // 检查参数是否有效
+            if (userId == 0) {
+                Toast.makeText(this, "用户ID为空，请先登录", Toast.LENGTH_SHORT).show();
+                Log.e("ChatActivity", "userId is 0");
+                finish();
+                return;
+            }
+            
+            if (otherUserId == 0) {
+                Toast.makeText(this, "卖家ID为空", Toast.LENGTH_SHORT).show();
+                Log.e("ChatActivity", "otherUserId is 0");
+                finish();
+                return;
+            }
+            
+            if (otherUserName == null) {
+                otherUserName = "卖家";
+            }
+
+            recyclerView = findViewById(R.id.recyclerView);
+            etMessage = findViewById(R.id.et_message);
+            btnSend = findViewById(R.id.btn_send);
+
+            adapter = new ChatAdapter();
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(adapter);
+
+            btnSend.setOnClickListener(v -> sendMessage());
+
+            loadMessages();
+            Log.d("ChatActivity", "ChatActivity created successfully");
+        } catch (Exception e) {
+            Log.e("ChatActivity", "Error creating ChatActivity: " + e.getMessage(), e);
+            Toast.makeText(this, "聊天页面加载失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            finish();
         }
-
-        getSupportActionBar().setTitle("与 " + otherUserName + " 聊天");
-
-        recyclerView = findViewById(R.id.recyclerView);
-        etMessage = findViewById(R.id.et_message);
-        btnSend = findViewById(R.id.btn_send);
-
-        adapter = new ChatAdapter();
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
-        btnSend.setOnClickListener(v -> sendMessage());
-
-        loadMessages();
     }
 
     private void loadMessages() {
