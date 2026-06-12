@@ -1,5 +1,44 @@
 # 版本变更日志
 
+## v1.3.0 (2026-06-12)
+
+### 性能优化
+
+1. **商品列表性能优化**
+   - 将商品列表从 LinearLayout 改为 RecyclerView，实现视图复用
+   - 启用 Glide 图片缓存，解决图片加载卡顿问题
+   - 移除冗余的 HttpURLConnection 备用加载逻辑
+
+2. **布局优化**
+   - 修复 RecyclerView 嵌套在 ScrollView 中导致商品显示不全的问题
+   - 优化布局结构，提升滚动流畅度
+
+### 新增功能
+
+1. **自动加载下一页（无限滚动）**
+   - 滚动到底部自动加载更多商品
+   - 无需手动点击"查看更多"按钮
+
+2. **底部状态提示**
+   - 加载中显示进度条和"加载中..."文字
+   - 没有更多数据时显示"已到最后"
+
+### 修复问题
+
+1. **商品展示不全**
+   - 修复 RecyclerView 高度计算问题
+   - 确保所有商品都能正确显示
+
+### 文件变更
+
+**新增文件:**
+- app/src/main/res/layout/item_home_goods.xml - 商品列表项布局
+- app/src/main/res/layout/item_load_more.xml - 底部加载状态布局
+
+**修改文件:**
+- app/src/main/java/com/example/myapplication/MainActivity.java - 核心优化
+- app/src/main/res/layout/activity_main.xml - 布局结构调整
+
 ## v1.2.0 (2026-06-12)
 
 ### 新增功能

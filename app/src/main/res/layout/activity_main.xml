@@ -92,10 +92,11 @@
             android:layout_marginStart="8dp"/>
     </LinearLayout>
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -137,25 +138,15 @@
                     android:textSize="18sp"
                     android:textColor="#2d3748"
                     android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/tv_view_more"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="查看更多"
-                    android:textSize="14sp"
-                    android:textColor="#667eea"
-                    android:layout_weight="1"
-                    android:gravity="end"/>
             </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/ll_items"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"/>
         </LinearLayout>
-    </ScrollView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_items"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
