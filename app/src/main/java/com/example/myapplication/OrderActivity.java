@@ -1,11 +1,14 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -129,7 +132,7 @@ public class OrderActivity extends AppCompatActivity {
             tvPrice.setPadding(0, 8, 0, 0);
 
             TextView tvStatus = new TextView(this);
-            tvStatus.setText("状态: " + (order.getStatusText() != null ? order.getStatusText() : getStatusText(order.getStatus())));
+            tvStatus.setText("状态: " + order.getStatusText());
             tvStatus.setTextSize(14);
             tvStatus.setTextColor(0xFF6B46C1);
             tvStatus.setPadding(0, 8, 0, 0);
@@ -139,18 +142,116 @@ public class OrderActivity extends AppCompatActivity {
             orderLayout.addView(tvPrice);
             orderLayout.addView(tvStatus);
 
+            // 如果订单状态是待付款，添加付款按钮
+            if (order.getStatus() == 1) {
+                Button btnPay = new Button(this);
+                btnPay.setText("立即付款");
+                btnPay.setBackgroundColor(0xFF6B46C1);
+                btnPay.setTextColor(0xFFFFFFFF);
+                btnPay.setTextSize(16);
+                btnPay.setPadding(16, 0, 16, 0);
+                
+                // 设置固定高度确保两个按钮平齐
+                LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        dpToPx(48) // 固定高度48dp
+                );
+                btnParams.setMargins(0, 12, 0, 0);
+                btnPay.setLayoutParams(btnParams);
+                
+                btnPay.setOnClickListener(v -> {
+                    // 跳转到支付页面
+                    Intent intent = new Intent(OrderActivity.this, PaymentActivity.class);
+                    intent.putExtra("order_id", order.getId());
+                    // 将 BigDecimal 转换为 double 传递
+                    double amountValue = order.getPrice() != null ? order.getPrice().doubleValue() : 0.0;
+                    intent.putExtra("amount", amountValue);
+                    intent.putExtra("item_count", 1);
+                    startActivity(intent);
+                });
+                
+                // 创建水平布局容器放置两个按钮
+                LinearLayout buttonLayout = new LinearLayout(this);
+                buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
+                LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                buttonLayoutParams.setMargins(0, 12, 0, 0);
+                buttonLayout.setLayoutParams(buttonLayoutParams);
+                
+                buttonLayout.addView(btnPay);
+                
+                // 添加取消订单按钮
+                Button btnCancel = new Button(this);
+                btnCancel.setText("取消订单");
+                btnCancel.setBackgroundColor(0xFFE53E3E);
+                btnCancel.setTextColor(0xFFFFFFFF);
+                btnCancel.setTextSize(16);
+                btnCancel.setPadding(16, 0, 16, 0);
+                
+                // 设置固定高度确保两个按钮平齐
+                LinearLayout.LayoutParams cancelParams = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        dpToPx(48) // 固定高度48dp
+                );
+                cancelParams.setMargins(16, 0, 0, 0); // 只设置左边距
+                btnCancel.setLayoutParams(cancelParams);
+                
+                btnCancel.setOnClickListener(v -> {
+                    cancelOrder(order.getId());
+                });
+                
+                buttonLayout.addView(btnCancel);
+                
+                orderLayout.addView(buttonLayout);
+            }
+
             llOrders.addView(orderLayout);
         }
     }
 
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return (int) (dp * density + 0.5f);
+    }
+    
     private String getStatusText(int status) {
         switch (status) {
             case 1: return "待付款";
             case 2: return "已付款";
-            case 3: return "已完成";
-            case 4: return "已取消";
+            case 3: return "待收货";
+            case 4: return "已完成";
+            case 5: return "已取消";
             default: return "未知";
         }
+    }
+
+    private void cancelOrder(Long orderId) {
+        executorService.execute(() -> {
+            try {
+                String response = apiService.deleteRaw("orders/" + orderId + "/cancel");
+                Result<Void> result = apiService.getGson().fromJson(response, Result.class);
+                
+                if (result != null && result.isSuccess()) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(OrderActivity.this, "订单已取消", Toast.LENGTH_SHORT).show();
+                        loadOrders(); // 刷新订单列表
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        Toast.makeText(OrderActivity.this, 
+                                result != null ? result.getMessage() : "取消失败", 
+                                Toast.LENGTH_SHORT).show();
+                    });
+                }
+            } catch (Exception e) {
+                Log.e("OrderActivity", "Cancel order error: " + e.getMessage());
+                runOnUiThread(() -> {
+                    Toast.makeText(OrderActivity.this, "取消失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     @Override

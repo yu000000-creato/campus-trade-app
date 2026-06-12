@@ -46,4 +46,10 @@ public class OrderController {
     public Result<OrderResponse> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
         return Result.success(orderService.updateStatus(id, status));
     }
+    
+    @DeleteMapping("/{id}/cancel")
+    public Result<Void> cancelOrder(@PathVariable Long id) {
+        orderService.cancelOrder(id);
+        return Result.success();
+    }
 }

@@ -47,6 +47,11 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException(400, "不能购买自己的商品");
         }
 
+        // 检查是否已经有未支付的订单
+        if (orderRepository.existsByItemIdAndBuyerIdAndStatus(request.getItemId(), buyerId, 1)) {
+            throw new BusinessException(400, "您已经有一个待付款的订单，请先完成支付或取消订单");
+        }
+
         User seller = userRepository.findById(item.getUserId())
                 .orElseThrow(() -> new BusinessException(404, "卖家不存在"));
 
@@ -59,11 +64,12 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(1);
         order.setAddress(request.getAddress());
         order.setRemark(request.getRemark());
+        // 设置支付截止时间为30分钟后
+        order.setPaymentDeadline(LocalDateTime.now().plusMinutes(30));
 
         Order savedOrder = orderRepository.save(order);
         
-        item.setStatus(2);
-        itemRepository.save(item);
+        // 不立即修改商品状态，支付成功后再修改
 
         return toResponse(savedOrder);
     }
@@ -124,6 +130,28 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException(404, "订单不存在");
         }
         orderRepository.deleteById(id);
+    }
+    
+    @Override
+    @Transactional
+    public void cancelOrder(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(404, "订单不存在"));
+        
+        if (order.getStatus() != 1) {
+            throw new BusinessException(400, "只有待付款订单可以取消");
+        }
+        
+        // 取消订单
+        order.setStatus(5);
+        orderRepository.save(order);
+        
+        // 恢复商品状态为可售
+        Item item = itemRepository.findById(order.getItemId()).orElse(null);
+        if (item != null) {
+            item.setStatus(1);
+            itemRepository.save(item);
+        }
     }
 
     private String generateOrderNo() {

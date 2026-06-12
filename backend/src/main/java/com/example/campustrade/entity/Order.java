@@ -48,6 +48,9 @@ public class Order {
     @Column(columnDefinition = "TEXT")
     private String remark;
 
+    @Column(name = "payment_deadline")
+    private LocalDateTime paymentDeadline;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

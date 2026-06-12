@@ -167,6 +167,22 @@ public class ApiService {
         }
     }
 
+    public String deleteRaw(String endpoint) throws IOException {
+        Request request = new Request.Builder()
+                .url(BASE_URL + endpoint)
+                .delete()
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("网络请求失败: " + response.code());
+            }
+            String json = response.body().string();
+            Log.d("ApiService", "DELETE Response: " + json);
+            return json;
+        }
+    }
+    
     public <T> Result<T> delete(String endpoint, Class<T> clazz) {
         Request request = new Request.Builder()
                 .url(BASE_URL + endpoint)

@@ -30,6 +30,7 @@ public class ChatActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private EditText etMessage;
     private Button btnSend;
+    private TextView tvSellerName;
     private ChatAdapter adapter;
     private List<ChatItem> chatList = new ArrayList<>();
     private ApiService apiService;
@@ -82,6 +83,8 @@ public class ChatActivity extends AppCompatActivity {
             recyclerView = findViewById(R.id.recyclerView);
             etMessage = findViewById(R.id.et_message);
             btnSend = findViewById(R.id.btn_send);
+            tvSellerName = findViewById(R.id.tv_seller_name);
+            tvSellerName.setText(otherUserName);
 
             adapter = new ChatAdapter();
             recyclerView.setLayoutManager(new LinearLayoutManager(this));

@@ -19,4 +19,6 @@ public interface OrderService {
     OrderResponse updateStatus(Long id, Integer status);
 
     void delete(Long id);
+    
+    void cancelOrder(Long id);
 }
