@@ -164,7 +164,7 @@
         android:textColor="#ffffff"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:background="#6c5ce7"
+        android:background="@drawable/ripple_payment"
         android:layout_margin="16dp"
         android:layout_marginTop="32dp"/>
 

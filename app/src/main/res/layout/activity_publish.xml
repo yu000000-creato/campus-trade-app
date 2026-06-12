@@ -172,7 +172,7 @@
                 android:layout_height="56dp"
                 android:text="发布商品"
                 android:textColor="#ffffff"
-                android:background="#6b46c1"
+                android:background="@drawable/ripple_primary"
                 android:textSize="18sp"
                 android:textStyle="bold"/>
 

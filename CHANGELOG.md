@@ -1,5 +1,45 @@
 # 版本变更日志
 
+## v1.4.0 (2026-06-12)
+
+### UI优化
+
+1. **点击效果优化**
+   - 为所有按钮添加 Ripple 点击效果
+   - 为列表项添加点击反馈效果
+   - 新增多种主题的 Ripple 效果文件：
+     - `ripple_primary.xml` - 紫色主题 (#6b46c1)
+     - `ripple_indigo.xml` - 靛蓝主题 (#667eea)
+     - `ripple_white.xml` - 白色背景点击效果
+     - `ripple_transparent.xml` - 透明背景点击效果
+     - `ripple_payment.xml` - 支付按钮 (#6c5ce7)
+
+2. **修复问题**
+   - 修复登录页面"立即注册"文字看不见的问题
+   - 修复注册页面"立即登录"文字看不见的问题
+
+### 文件变更
+
+**新增文件:**
+- app/src/main/res/drawable/ripple_primary.xml
+- app/src/main/res/drawable/ripple_indigo.xml
+- app/src/main/res/drawable/ripple_white.xml
+- app/src/main/res/drawable/ripple_transparent.xml
+- app/src/main/res/drawable/ripple_payment.xml
+
+**修改文件:**
+- app/src/main/res/layout/activity_login.xml
+- app/src/main/res/layout/activity_register.xml
+- app/src/main/res/layout/activity_main.xml
+- app/src/main/res/layout/activity_publish.xml
+- app/src/main/res/layout/activity_item_detail.xml
+- app/src/main/res/layout/activity_chat.xml
+- app/src/main/res/layout/activity_payment.xml
+- app/src/main/res/layout/activity_settings.xml
+- app/src/main/res/layout/activity_profile.xml
+- app/src/main/res/layout/item_home_goods.xml
+- app/src/main/res/layout/item_goods.xml
+
 ## v1.3.0 (2026-06-12)
 
 ### 性能优化

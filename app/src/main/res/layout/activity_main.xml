@@ -36,8 +36,12 @@
             android:layout_height="wrap_content"
             android:text="退出"
             android:textColor="#ffffff"
-            android:background="@null"
-            android:textSize="14sp"/>
+            android:background="@drawable/ripple_transparent"
+            android:textSize="14sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"/>
     </LinearLayout>
 
     <LinearLayout
@@ -63,7 +67,7 @@
             android:layout_height="wrap_content"
             android:text="搜索"
             android:textColor="#ffffff"
-            android:background="#667eea"
+            android:background="@drawable/ripple_indigo"
             android:textSize="14sp"
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
@@ -161,7 +165,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/ripple_white"
+            android:padding="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -183,7 +189,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/ripple_white"
+            android:padding="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -205,7 +213,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/ripple_white"
+            android:padding="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -227,7 +237,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/ripple_white"
+            android:padding="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -249,7 +261,9 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/ripple_white"
+            android:padding="8dp">
 
             <TextView
                 android:layout_width="wrap_content"

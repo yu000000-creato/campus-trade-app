@@ -51,7 +51,7 @@
             android:layout_height="48dp"
             android:text="发送"
             android:textColor="#ffffff"
-            android:background="#6b46c1"
+            android:background="@drawable/ripple_primary"
             android:paddingLeft="24dp"
             android:paddingRight="24dp"/>
 

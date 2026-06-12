@@ -72,7 +72,7 @@
             android:layout_height="wrap_content"
             android:text="登录"
             android:textColor="#ffffff"
-            android:background="#667eea"
+            android:background="@drawable/ripple_indigo"
             android:textSize="16sp"
             android:textStyle="bold"
             android:padding="12dp"/>
@@ -97,7 +97,12 @@
                 android:text="立即注册"
                 android:textColor="#667eea"
                 android:textStyle="bold"
-                android:layout_marginStart="8dp"/>
+                android:layout_marginStart="8dp"
+                android:background="@drawable/ripple_transparent"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"/>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
