@@ -171,6 +171,28 @@ public class MainActivity extends AppCompatActivity {
     private void displayCategories(List<Category> categories) {
         llCategories.removeAllViews();
 
+        // 添加"全部商品"选项
+        TextView tvAllItems = new TextView(this);
+        tvAllItems.setText("全部商品");
+        tvAllItems.setTextSize(14);
+        tvAllItems.setTextColor(Color.BLACK);
+        tvAllItems.setBackgroundColor(Color.parseColor("#f0f2f5"));
+        tvAllItems.setPadding(16, 8, 16, 8);
+
+        LinearLayout.LayoutParams allParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        allParams.setMargins(0, 0, 12, 0);
+        tvAllItems.setLayoutParams(allParams);
+
+        tvAllItems.setOnClickListener(v -> {
+            currentCategoryId = null;
+            loadItems();
+        });
+
+        llCategories.addView(tvAllItems);
+
         for (Category category : categories) {
             TextView tvCategory = new TextView(this);
             tvCategory.setText(category.getName());
@@ -195,8 +217,9 @@ public class MainActivity extends AppCompatActivity {
     private void loadItems() {
         executorService.execute(() -> {
             try {
-                Log.d("MainActivity", "开始加载商品列表...");
-                String jsonResponse = apiService.getRaw("items?page=1&size=10&sort=" + currentSort);
+                Log.d("MainActivity", "开始加载全部商品列表...");
+                // 加载更多商品（50个）以显示全部商品
+                String jsonResponse = apiService.getRaw("items?page=1&size=50&sort=" + currentSort);
                 Log.d("MainActivity", "商品列表响应: " + jsonResponse);
                 // 使用 ApiService 中配置好的 Gson 实例
                 Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
@@ -250,7 +273,8 @@ public class MainActivity extends AppCompatActivity {
         currentCategoryId = categoryId;  // 更新当前分类
         executorService.execute(() -> {
             try {
-                String jsonResponse = apiService.getRaw("items/category/" + categoryId + "?page=1&size=10&sort=" + currentSort);
+                // 加载更多商品（50个）
+                String jsonResponse = apiService.getRaw("items/category/" + categoryId + "?page=1&size=50&sort=" + currentSort);
                 // 使用 ApiService 中配置好的 Gson 实例
                 Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
                         new TypeToken<Result<PageResult<Item>>>(){}.getType());
