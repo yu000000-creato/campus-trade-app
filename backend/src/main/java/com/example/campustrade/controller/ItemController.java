@@ -29,16 +29,18 @@ public class ItemController {
     @GetMapping
     public Result<PageResult<ItemResponse>> list(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(itemService.list(page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "time_desc") String sort) {
+        return Result.success(itemService.list(page, size, sort));
     }
 
     @GetMapping("/category/{categoryId}")
     public Result<PageResult<ItemResponse>> listByCategory(
             @PathVariable Long categoryId,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(itemService.listByCategory(categoryId, page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "time_desc") String sort) {
+        return Result.success(itemService.listByCategory(categoryId, page, size, sort));
     }
 
     @GetMapping("/user/{userId}")
@@ -53,8 +55,9 @@ public class ItemController {
     public Result<PageResult<ItemResponse>> search(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(itemService.search(keyword, page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "time_desc") String sort) {
+        return Result.success(itemService.search(keyword, page, size, sort));
     }
 
     @PutMapping("/{id}")

@@ -25,4 +25,5 @@ public class OrderResponse {
     private String address;
     private String remark;
     private String createdAt;
+    private String paymentDeadline;
 }

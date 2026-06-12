@@ -10,13 +10,13 @@ public interface ItemService {
 
     ItemResponse getById(Long id);
 
-    PageResult<ItemResponse> list(Integer page, Integer size);
+    PageResult<ItemResponse> list(Integer page, Integer size, String sort);
 
-    PageResult<ItemResponse> listByCategory(Long categoryId, Integer page, Integer size);
+    PageResult<ItemResponse> listByCategory(Long categoryId, Integer page, Integer size, String sort);
+
+    PageResult<ItemResponse> search(String keyword, Integer page, Integer size, String sort);
 
     PageResult<ItemResponse> listByUser(Long userId, Integer page, Integer size);
-
-    PageResult<ItemResponse> search(String keyword, Integer page, Integer size);
 
     ItemResponse update(Long id, ItemCreateRequest request);
 

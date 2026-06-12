@@ -75,8 +75,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public PageResult<ItemResponse> list(Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public PageResult<ItemResponse> list(Integer page, Integer size, String sort) {
+        Sort sortOrder = parseSort(sort);
+        Pageable pageable = PageRequest.of(page - 1, size, sortOrder);
         Page<Item> itemPage = itemRepository.findByStatus(1, pageable);
         return PageResult.of(
                 itemPage.getContent().stream().map(this::toResponse).toList(),
@@ -87,8 +88,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public PageResult<ItemResponse> listByCategory(Long categoryId, Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public PageResult<ItemResponse> listByCategory(Long categoryId, Integer page, Integer size, String sort) {
+        Sort sortOrder = parseSort(sort);
+        Pageable pageable = PageRequest.of(page - 1, size, sortOrder);
         Page<Item> itemPage = itemRepository.findByCategoryIdAndStatus(categoryId, 1, pageable);
         return PageResult.of(
                 itemPage.getContent().stream().map(this::toResponse).toList(),
@@ -111,8 +113,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public PageResult<ItemResponse> search(String keyword, Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public PageResult<ItemResponse> search(String keyword, Integer page, Integer size, String sort) {
+        Sort sortOrder = parseSort(sort);
+        Pageable pageable = PageRequest.of(page - 1, size, sortOrder);
         Page<Item> itemPage = itemRepository.searchByKeyword(keyword, 1, pageable);
         return PageResult.of(
                 itemPage.getContent().stream().map(this::toResponse).toList(),
@@ -190,5 +193,18 @@ public class ItemServiceImpl implements ItemService {
         response.setViewCount(item.getViewCount());
         response.setCreatedAt(item.getCreatedAt() != null ? item.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
         return response;
+    }
+
+    private Sort parseSort(String sort) {
+        if (sort == null || sort.isEmpty()) {
+            return Sort.by(Sort.Direction.DESC, "createdAt");
+        }
+        return switch (sort) {
+            case "price_asc" -> Sort.by(Sort.Direction.ASC, "currentPrice");
+            case "price_desc" -> Sort.by(Sort.Direction.DESC, "currentPrice");
+            case "time_desc" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "view_desc" -> Sort.by(Sort.Direction.DESC, "viewCount");
+            default -> Sort.by(Sort.Direction.DESC, "createdAt");
+        };
     }
 }

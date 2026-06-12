@@ -9,10 +9,13 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ImageView;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,9 +40,12 @@ public class MainActivity extends AppCompatActivity {
     private Button btnSearch;
     private LinearLayout llCategories;
     private LinearLayout llItems;
+    private Spinner spinnerSort;
     private ApiService apiService;
     private ExecutorService executorService;
     private String currentUsername;
+    private Long currentCategoryId = null;
+    private String currentSort = "time_desc";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,12 +66,37 @@ public class MainActivity extends AppCompatActivity {
         btnSearch = findViewById(R.id.btn_search);
         llCategories = findViewById(R.id.ll_categories);
         llItems = findViewById(R.id.ll_items);
+        spinnerSort = findViewById(R.id.spinner_sort);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
+
+        // 设置排序选项
+        String[] sortOptions = {"最新发布", "价格从低到高", "价格从高到低", "按浏览次数"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, sortOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSort.setAdapter(adapter);
     }
 
     private void setupListeners() {
         btnLogout.setOnClickListener(v -> logout());
+
+        // 排序选择监听
+        spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String[] sortValues = {"time_desc", "price_asc", "price_desc", "view_desc"};
+                currentSort = sortValues[position];
+                // 重新加载商品
+                if (currentCategoryId != null) {
+                    filterByCategory(currentCategoryId);
+                } else {
+                    loadItems();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         btnSearch.setOnClickListener(v -> {
             String keyword = etSearch.getText().toString().trim();
@@ -165,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         executorService.execute(() -> {
             try {
                 Log.d("MainActivity", "开始加载商品列表...");
-                String jsonResponse = apiService.getRaw("items?page=1&size=10");
+                String jsonResponse = apiService.getRaw("items?page=1&size=10&sort=" + currentSort);
                 Log.d("MainActivity", "商品列表响应: " + jsonResponse);
                 // 使用 ApiService 中配置好的 Gson 实例
                 Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
@@ -199,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
     private void searchItems(String keyword) {
         executorService.execute(() -> {
             try {
-                String url = "items/search?keyword=" + java.net.URLEncoder.encode(keyword, "UTF-8") + "&page=1&size=10";
+                String url = "items/search?keyword=" + java.net.URLEncoder.encode(keyword, "UTF-8") + "&page=1&size=10&sort=" + currentSort;
                 String jsonResponse = apiService.getRaw(url);
                 // 使用 ApiService 中配置好的 Gson 实例
                 Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
@@ -216,9 +247,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void filterByCategory(Long categoryId) {
+        currentCategoryId = categoryId;  // 更新当前分类
         executorService.execute(() -> {
             try {
-                String jsonResponse = apiService.getRaw("items/category/" + categoryId + "?page=1&size=10");
+                String jsonResponse = apiService.getRaw("items/category/" + categoryId + "?page=1&size=10&sort=" + currentSort);
                 // 使用 ApiService 中配置好的 Gson 实例
                 Result<PageResult<Item>> result = apiService.getGson().fromJson(jsonResponse,
                         new TypeToken<Result<PageResult<Item>>>(){}.getType());

@@ -114,6 +114,23 @@ public class MyItemsActivity extends AppCompatActivity {
                 holder.tvOriginalPrice.setText("");
             }
 
+            // 设置商品状态
+            Integer status = item.getStatus();
+            if (status != null) {
+                if (status == 1) {
+                    holder.tvStatus.setText("状态: 上架中");
+                    holder.tvStatus.setTextColor(0xFF48BB78);
+                } else if (status == 2) {
+                    holder.tvStatus.setText("状态: 已下架");
+                    holder.tvStatus.setTextColor(0xFFA0AEC0);
+                } else {
+                    holder.tvStatus.setText("状态: 未知");
+                    holder.tvStatus.setTextColor(0xFF718096);
+                }
+            } else {
+                holder.tvStatus.setText("");
+            }
+
             holder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(MyItemsActivity.this, ItemDetailActivity.class);
                 intent.putExtra("item_id", item.getId());
@@ -127,7 +144,7 @@ public class MyItemsActivity extends AppCompatActivity {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvTitle, tvPrice, tvOriginalPrice, tvCategory;
+            TextView tvTitle, tvPrice, tvOriginalPrice, tvCategory, tvStatus;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -135,6 +152,7 @@ public class MyItemsActivity extends AppCompatActivity {
                 tvPrice = itemView.findViewById(R.id.tv_price);
                 tvOriginalPrice = itemView.findViewById(R.id.tv_original_price);
                 tvCategory = itemView.findViewById(R.id.tv_category);
+                tvStatus = itemView.findViewById(R.id.tv_status);
             }
         }
     }

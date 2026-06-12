@@ -17,6 +17,7 @@ public class OrderResponse {
     private String address;
     private String remark;
     private String createdAt;
+    private String paymentDeadline;
 
     public Long getId() {
         return id;
@@ -128,5 +129,13 @@ public class OrderResponse {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getPaymentDeadline() {
+        return paymentDeadline;
+    }
+
+    public void setPaymentDeadline(String paymentDeadline) {
+        this.paymentDeadline = paymentDeadline;
     }
 }

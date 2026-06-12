@@ -142,8 +142,15 @@ public class OrderActivity extends AppCompatActivity {
             orderLayout.addView(tvPrice);
             orderLayout.addView(tvStatus);
 
-            // 如果订单状态是待付款，添加付款按钮
+            // 如果订单状态是待付款，添加付款按钮和截止时间
             if (order.getStatus() == 1) {
+                TextView tvDeadline = new TextView(this);
+                String deadlineText = order.getPaymentDeadline() != null ? order.getPaymentDeadline() : "30分钟内";
+                tvDeadline.setText("请在 " + deadlineText + " 内完成付款");
+                tvDeadline.setTextSize(12);
+                tvDeadline.setTextColor(0xFFE53E3E);
+                tvDeadline.setPadding(0, 8, 0, 0);
+                orderLayout.addView(tvDeadline);
                 Button btnPay = new Button(this);
                 btnPay.setText("立即付款");
                 btnPay.setBackgroundColor(0xFF6B46C1);

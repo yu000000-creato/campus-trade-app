@@ -182,6 +182,7 @@ public class OrderServiceImpl implements OrderService {
         response.setAddress(order.getAddress());
         response.setRemark(order.getRemark());
         response.setCreatedAt(order.getCreatedAt() != null ? order.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
+        response.setPaymentDeadline(order.getPaymentDeadline() != null ? order.getPaymentDeadline().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
         return response;
     }
 

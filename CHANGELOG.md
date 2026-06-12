@@ -1,5 +1,39 @@
 # 版本变更日志
 
+## v1.2.0 (2026-06-12)
+
+### 新增功能
+
+1. **排序功能优化**
+   - 修复按浏览次数排序不生效问题
+   - 确保前端正确传递排序参数到后端
+   - 优化商品列表展示逻辑
+
+### 修复问题
+
+1. **排序功能问题**
+   - 修复按浏览次数排序时商品顺序不正确的问题
+   - 确保排序参数正确传递和处理
+
+2. **商品列表展示问题**
+   - 优化商品列表加载逻辑
+   - 确保数据正确显示
+
+### 文件变更
+
+**修改文件:**
+- app/src/main/java/com/example/myapplication/MainActivity.java - 排序逻辑优化
+- app/src/main/java/com/example/myapplication/MyItemsActivity.java - 商品列表优化
+- app/src/main/java/com/example/myapplication/OrderActivity.java - 订单展示优化
+- app/src/main/java/com/example/myapplication/model/OrderResponse.java - 订单响应模型
+- app/src/main/res/layout/activity_main.xml - 布局优化
+- app/src/main/res/layout/item_goods.xml - 商品项布局优化
+- backend/src/main/java/com/example/campustrade/controller/ItemController.java - 排序参数处理
+- backend/src/main/java/com/example/campustrade/dto/response/OrderResponse.java - 订单响应DTO
+- backend/src/main/java/com/example/campustrade/service/ItemService.java - 服务接口
+- backend/src/main/java/com/example/campustrade/service/impl/ItemServiceImpl.java - 排序逻辑实现
+- backend/src/main/java/com/example/campustrade/service/impl/OrderServiceImpl.java - 订单服务优化
+
 ## v1.1.0 (2026-06-11)
 
 ### 新增功能
