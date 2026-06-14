@@ -15,5 +15,7 @@ public class OrderCreateRequest {
 
     private String address;
 
+    private String phone;
+
     private String remark;
 }

@@ -48,6 +48,14 @@ public class OrderController {
     public Result<OrderResponse> updateStatus(@PathVariable Long id, @RequestParam Integer status) {
         return Result.success(orderService.updateStatus(id, status));
     }
+
+    @PutMapping("/{id}/info")
+    public Result<OrderResponse> updateOrderInfo(
+            @PathVariable Long id,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String phone) {
+        return Result.success(orderService.updateOrderInfo(id, address, phone));
+    }
     
     @DeleteMapping("/{id}/cancel")
     public Result<Void> cancelOrder(@PathVariable Long id) {

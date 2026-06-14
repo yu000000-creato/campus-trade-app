@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -63,9 +64,10 @@ public class OrderServiceImpl implements OrderService {
         order.setPrice(item.getCurrentPrice());
         order.setStatus(1);
         order.setAddress(request.getAddress());
+        order.setPhone(request.getPhone());
         order.setRemark(request.getRemark());
-        // 设置支付截止时间为30分钟后
-        order.setPaymentDeadline(LocalDateTime.now().plusMinutes(30));
+        // 设置支付截止时间为30分钟后（使用UTC时间）
+        order.setPaymentDeadline(LocalDateTime.now(ZoneOffset.UTC).plusMinutes(30));
 
         Order savedOrder = orderRepository.save(order);
         
@@ -139,6 +141,22 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    public OrderResponse updateOrderInfo(Long id, String address, String phone) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(404, "订单不存在"));
+        
+        if (address != null) {
+            order.setAddress(address);
+        }
+        if (phone != null) {
+            order.setPhone(phone);
+        }
+        Order updatedOrder = orderRepository.save(order);
+        return toResponse(updatedOrder);
+    }
+
+    @Override
+    @Transactional
     public void delete(Long id) {
         if (!orderRepository.existsById(id)) {
             throw new BusinessException(404, "订单不存在");
@@ -194,6 +212,7 @@ public class OrderServiceImpl implements OrderService {
         response.setStatus(order.getStatus());
         response.setStatusText(getStatusText(order.getStatus()));
         response.setAddress(order.getAddress());
+        response.setPhone(order.getPhone());
         response.setRemark(order.getRemark());
         response.setCreatedAt(order.getCreatedAt() != null ? order.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);
         response.setPaymentDeadline(order.getPaymentDeadline() != null ? order.getPaymentDeadline().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null);

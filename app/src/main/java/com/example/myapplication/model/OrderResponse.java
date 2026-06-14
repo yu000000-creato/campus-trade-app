@@ -15,6 +15,7 @@ public class OrderResponse {
     private Integer status;
     private String statusText;
     private String address;
+    private String phone;
     private String remark;
     private String createdAt;
     private String paymentDeadline;
@@ -113,6 +114,14 @@ public class OrderResponse {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getRemark() {

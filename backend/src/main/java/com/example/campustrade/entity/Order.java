@@ -45,6 +45,9 @@ public class Order {
     @Column(length = 500)
     private String address;
 
+    @Column(length = 20)
+    private String phone;
+
     @Column(columnDefinition = "TEXT")
     private String remark;
 

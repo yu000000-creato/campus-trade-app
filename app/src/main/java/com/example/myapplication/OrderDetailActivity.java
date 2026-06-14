@@ -1,11 +1,15 @@
 package com.example.myapplication;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -18,6 +22,9 @@ import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
 import com.google.gson.reflect.TypeToken;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,15 +32,18 @@ public class OrderDetailActivity extends AppCompatActivity {
 
     private TextView tvStatus, tvStatusDesc, tvItemTitle, tvPrice;
     private TextView tvOrderNo, tvCreatedAt, tvPaymentDeadline;
-    private TextView tvBuyerName, tvSellerName, tvAddress, tvRemark;
-    private LinearLayout llPaymentDeadline, llAddress, llRemark, llActions;
-    private Button btnPay, btnCancel, btnConfirmReceipt, btnContactSeller;
+    private TextView tvBuyerName, tvSellerName, tvAddress, tvRemark, tvPhone;
+    private TextView tvCountdown;
+    private LinearLayout llPaymentDeadline, llAddress, llRemark, llActions, llPhone;
+    private Button btnPay, btnCancel, btnConfirmReceipt, btnContactSeller, btnEditInfo;
     private ImageView ivBack;
     private ApiService apiService;
     private ExecutorService executorService;
     private Long orderId;
     private OrderResponse order;
     private Long userId;
+    private Handler countdownHandler;
+    private Runnable countdownRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +58,7 @@ public class OrderDetailActivity extends AppCompatActivity {
     private void initViews() {
         tvStatus = findViewById(R.id.tv_status);
         tvStatusDesc = findViewById(R.id.tv_status_desc);
+        tvCountdown = findViewById(R.id.tv_countdown);
         tvItemTitle = findViewById(R.id.tv_item_title);
         tvPrice = findViewById(R.id.tv_price);
         tvOrderNo = findViewById(R.id.tv_order_no);
@@ -56,8 +67,10 @@ public class OrderDetailActivity extends AppCompatActivity {
         tvBuyerName = findViewById(R.id.tv_buyer_name);
         tvSellerName = findViewById(R.id.tv_seller_name);
         tvAddress = findViewById(R.id.tv_address);
+        tvPhone = findViewById(R.id.tv_phone);
         tvRemark = findViewById(R.id.tv_remark);
         llPaymentDeadline = findViewById(R.id.ll_payment_deadline);
+        llPhone = findViewById(R.id.ll_phone);
         llAddress = findViewById(R.id.ll_address);
         llRemark = findViewById(R.id.ll_remark);
         llActions = findViewById(R.id.ll_actions);
@@ -65,12 +78,15 @@ public class OrderDetailActivity extends AppCompatActivity {
         btnCancel = findViewById(R.id.btn_cancel);
         btnConfirmReceipt = findViewById(R.id.btn_confirm_receipt);
         btnContactSeller = findViewById(R.id.btn_contact_seller);
+        btnEditInfo = findViewById(R.id.btn_edit_info);
         ivBack = findViewById(R.id.iv_back);
 
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
+        countdownHandler = new Handler(Looper.getMainLooper());
 
         ivBack.setOnClickListener(v -> finish());
+        btnEditInfo.setOnClickListener(v -> showEditInfoDialog());
     }
 
     private void loadOrderId() {
@@ -125,17 +141,28 @@ public class OrderDetailActivity extends AppCompatActivity {
         tvOrderNo.setText(order.getOrderNo());
         tvCreatedAt.setText(formatDateTime(order.getCreatedAt()));
 
-        // 付款截止时间
+        // 付款截止时间和倒计时
         if (order.getStatus() == 1 && order.getPaymentDeadline() != null) {
             llPaymentDeadline.setVisibility(View.VISIBLE);
             tvPaymentDeadline.setText(formatDateTime(order.getPaymentDeadline()));
+            startCountdown(order.getPaymentDeadline());
         } else {
             llPaymentDeadline.setVisibility(View.GONE);
+            tvCountdown.setVisibility(View.GONE);
+            stopCountdown();
         }
 
         // 设置买卖双方信息
         tvBuyerName.setText(order.getBuyerName());
         tvSellerName.setText(order.getSellerName());
+
+        // 联系电话
+        if (order.getPhone() != null && !order.getPhone().isEmpty()) {
+            llPhone.setVisibility(View.VISIBLE);
+            tvPhone.setText(order.getPhone());
+        } else {
+            llPhone.setVisibility(View.GONE);
+        }
 
         // 收货地址
         if (order.getAddress() != null && !order.getAddress().isEmpty()) {
@@ -151,6 +178,13 @@ public class OrderDetailActivity extends AppCompatActivity {
             tvRemark.setText(order.getRemark());
         } else {
             llRemark.setVisibility(View.GONE);
+        }
+
+        // 显示编辑按钮（只有买家在待付款状态可以编辑）
+        if (order.getStatus() == 1 && order.getBuyerId().equals(userId)) {
+            btnEditInfo.setVisibility(View.VISIBLE);
+        } else {
+            btnEditInfo.setVisibility(View.GONE);
         }
 
         // 设置操作按钮
@@ -285,9 +319,128 @@ public class OrderDetailActivity extends AppCompatActivity {
         return dateTime.replace("T", " ");
     }
 
+    // 倒计时相关方法
+    private void startCountdown(String paymentDeadline) {
+        stopCountdown();
+        tvCountdown.setVisibility(View.VISIBLE);
+
+        countdownRunnable = new Runnable() {
+            @Override
+            public void run() {
+                updateCountdown(paymentDeadline);
+                countdownHandler.postDelayed(this, 1000);
+            }
+        };
+        countdownHandler.post(countdownRunnable);
+    }
+
+    private void stopCountdown() {
+        if (countdownHandler != null && countdownRunnable != null) {
+            countdownHandler.removeCallbacks(countdownRunnable);
+        }
+    }
+
+    private void updateCountdown(String paymentDeadline) {
+        try {
+            // 使用UTC时间计算，避免时区问题
+            LocalDateTime deadline = LocalDateTime.parse(paymentDeadline, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
+            long secondsRemaining = ChronoUnit.SECONDS.between(now, deadline);
+
+            if (secondsRemaining <= 0) {
+                tvCountdown.setText("订单已超时");
+                tvCountdown.setTextColor(0xFF718096);
+                stopCountdown();
+                // 自动刷新订单状态
+                loadOrderDetail();
+                return;
+            }
+
+            // 格式化显示为 时:分:秒
+            long hours = secondsRemaining / 3600;
+            long minutes = (secondsRemaining % 3600) / 60;
+            long seconds = secondsRemaining % 60;
+            
+            String countdownText;
+            if (hours > 0) {
+                countdownText = String.format("剩余时间: %02d:%02d:%02d", hours, minutes, seconds);
+            } else {
+                countdownText = String.format("剩余时间: %02d:%02d", minutes, seconds);
+            }
+            tvCountdown.setText(countdownText);
+            tvCountdown.setTextColor(0xFFE53E3E);
+        } catch (Exception e) {
+            Log.e("OrderDetailActivity", "Countdown error: " + e.getMessage());
+            tvCountdown.setVisibility(View.GONE);
+        }
+    }
+
+    // 编辑地址和电话对话框
+    private void showEditInfoDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("修改地址和电话");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(32, 16, 32, 16);
+
+        final EditText etAddress = new EditText(this);
+        etAddress.setHint("请输入收货地址");
+        etAddress.setText(order.getAddress() != null ? order.getAddress() : "");
+        layout.addView(etAddress);
+
+        final EditText etPhone = new EditText(this);
+        etPhone.setHint("请输入联系电话");
+        etPhone.setText(order.getPhone() != null ? order.getPhone() : "");
+        layout.addView(etPhone);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("保存", (dialog, which) -> {
+            String newAddress = etAddress.getText().toString().trim();
+            String newPhone = etPhone.getText().toString().trim();
+            updateOrderInfo(newAddress, newPhone);
+        });
+
+        builder.setNegativeButton("取消", (dialog, which) -> dialog.dismiss());
+
+        builder.show();
+    }
+
+    private void updateOrderInfo(String address, String phone) {
+        executorService.execute(() -> {
+            try {
+                StringBuilder urlBuilder = new StringBuilder("orders/" + orderId + "/info");
+                boolean hasParam = false;
+                if (address != null && !address.isEmpty()) {
+                    urlBuilder.append("?address=").append(java.net.URLEncoder.encode(address, "UTF-8"));
+                    hasParam = true;
+                }
+                if (phone != null && !phone.isEmpty()) {
+                    urlBuilder.append(hasParam ? "&" : "?").append("phone=").append(java.net.URLEncoder.encode(phone, "UTF-8"));
+                }
+
+                Result<OrderResponse> result = apiService.put(urlBuilder.toString(), "", OrderResponse.class);
+
+                runOnUiThread(() -> {
+                    if (result != null && result.isSuccess()) {
+                        Toast.makeText(this, "修改成功", Toast.LENGTH_SHORT).show();
+                        loadOrderDetail();
+                    } else {
+                        Toast.makeText(this, result != null ? result.getMessage() : "修改失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                Log.e("OrderDetailActivity", "Update order info error: " + e.getMessage());
+                runOnUiThread(() -> Toast.makeText(this, "修改失败: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        });
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopCountdown();
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }

@@ -18,6 +18,8 @@ public interface OrderService {
 
     OrderResponse updateStatus(Long id, Integer status);
 
+    OrderResponse updateOrderInfo(Long id, String address, String phone);
+
     void delete(Long id);
     
     void cancelOrder(Long id);

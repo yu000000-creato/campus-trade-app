@@ -23,6 +23,7 @@ public class OrderResponse {
     private Integer status;
     private String statusText;
     private String address;
+    private String phone;
     private String remark;
     private String createdAt;
     private String paymentDeadline;

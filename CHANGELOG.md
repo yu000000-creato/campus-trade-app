@@ -1,5 +1,39 @@
 # 版本变更日志
 
+## v1.9.0 (2026-06-14)
+
+### 新增功能
+
+1. **订单倒计时功能**
+   - 待付款订单显示实时倒计时
+   - 支持时:分:秒格式显示
+   - 超时自动提示并刷新订单状态
+
+2. **订单信息编辑**
+   - 支持修改收货地址
+   - 支持修改联系电话
+   - 仅限买家在待付款状态编辑
+
+### Bug修复
+
+- 修复时区问题导致倒计时显示错误
+- 统一前后端使用UTC时间计算
+
+### 文件变更
+
+**后端:**
+- backend/src/main/java/com/example/campustrade/entity/Order.java
+- backend/src/main/java/com/example/campustrade/dto/response/OrderResponse.java
+- backend/src/main/java/com/example/campustrade/dto/request/OrderCreateRequest.java
+- backend/src/main/java/com/example/campustrade/service/OrderService.java
+- backend/src/main/java/com/example/campustrade/service/impl/OrderServiceImpl.java
+- backend/src/main/java/com/example/campustrade/controller/OrderController.java
+
+**前端:**
+- app/src/main/java/com/example/myapplication/model/OrderResponse.java
+- app/src/main/java/com/example/myapplication/OrderDetailActivity.java
+- app/src/main/res/layout/activity_order_detail.xml
+
 ## v1.8.0 (2026-06-14)
 
 ### 新增功能
