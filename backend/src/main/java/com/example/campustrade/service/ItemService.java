@@ -3,10 +3,13 @@ package com.example.campustrade.service;
 import com.example.campustrade.dto.PageResult;
 import com.example.campustrade.dto.request.ItemCreateRequest;
 import com.example.campustrade.dto.response.ItemResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ItemService {
 
     ItemResponse create(Long userId, ItemCreateRequest request);
+
+    String uploadImage(MultipartFile file);
 
     ItemResponse getById(Long id);
 

@@ -12,14 +12,22 @@ import com.example.campustrade.repository.ItemRepository;
 import com.example.campustrade.repository.UserRepository;
 import com.example.campustrade.service.ItemService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +36,12 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+
+    @Value("${file.upload-dir:./uploads/}")
+    private String uploadDir;
+
+    @Value("${server.port:8080}")
+    private String serverPort;
 
     @Override
     @Transactional
@@ -170,6 +184,39 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new BusinessException(404, "商品不存在"));
         item.setStatus(status);
         itemRepository.save(item);
+    }
+
+    @Override
+    public String uploadImage(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(400, "请选择要上传的图片");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BusinessException(400, "请上传有效的图片文件");
+        }
+
+        try {
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String newFilename = UUID.randomUUID().toString() + extension;
+
+            Path filePath = uploadPath.resolve(newFilename);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            return "http://localhost:" + serverPort + "/uploads/" + newFilename;
+        } catch (IOException e) {
+            throw new BusinessException(500, "图片上传失败: " + e.getMessage());
+        }
     }
 
     private ItemResponse toResponse(Item item) {

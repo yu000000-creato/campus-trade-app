@@ -1,5 +1,31 @@
 # 版本变更日志
 
+## v1.7.0 (2026-06-14)
+
+### 新增功能
+
+1. **发布商品图片上传**
+   - 发布商品时支持选择相册图片
+   - 图片自动上传到服务器
+   - 发布页面显示图片预览
+   - 商品信息包含图片URL
+
+### 后端改进
+
+- 新增 `POST /api/items/upload-image` 图片上传接口
+- 支持图片文件存储和访问
+
+### 文件变更
+
+**新增/修改文件:**
+- backend/src/main/java/com/example/campustrade/controller/ItemController.java - 添加图片上传接口
+- backend/src/main/java/com/example/campustrade/service/ItemService.java - 添加uploadImage方法
+- backend/src/main/java/com/example/campustrade/service/impl/ItemServiceImpl.java - 实现图片上传逻辑
+- app/src/main/java/com/example/myapplication/network/ApiService.java - 添加uploadImage方法
+- app/src/main/java/com/example/myapplication/PublishActivity.java - 添加图片选择和上传逻辑
+- app/src/main/res/layout/activity_publish.xml - 添加图片选择区域
+- app/src/main/AndroidManifest.xml - 添加存储权限
+
 ## v1.6.0 (2026-06-14)
 
 ### 新增功能

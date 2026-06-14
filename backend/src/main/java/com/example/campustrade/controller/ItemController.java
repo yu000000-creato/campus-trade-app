@@ -7,7 +7,9 @@ import com.example.campustrade.dto.response.ItemResponse;
 import com.example.campustrade.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/items")
@@ -19,6 +21,12 @@ public class ItemController {
     @PostMapping
     public Result<ItemResponse> create(@RequestParam Long userId, @Valid @RequestBody ItemCreateRequest request) {
         return Result.success(itemService.create(userId, request));
+    }
+
+    @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<String> uploadImage(@RequestParam("image") MultipartFile file) {
+        String imageUrl = itemService.uploadImage(file);
+        return Result.success("图片上传成功", imageUrl);
     }
 
     @GetMapping("/{id}")
