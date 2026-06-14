@@ -1,5 +1,34 @@
 # 版本变更日志
 
+## v1.6.0 (2026-06-14)
+
+### 新增功能
+
+1. **下拉刷新功能**
+   - 首页商品列表支持下拉刷新
+   - 订单页面支持下拉刷新
+   - 收藏页面支持下拉刷新
+   - 我的发布页面支持下拉刷新
+   - 刷新动画颜色与页面主题一致
+
+### 优化改进
+
+- 优化首页布局结构，刷新图标显示在商品列表上方
+- 修复登录后闪退的问题（setColorSchemeResources 参数错误）
+
+### 文件变更
+
+**修改文件:**
+- app/build.gradle.kts - 添加 SwipeRefreshLayout 依赖
+- app/src/main/res/layout/activity_main.xml - 添加下拉刷新布局
+- app/src/main/res/layout/activity_order.xml - 添加下拉刷新布局
+- app/src/main/res/layout/activity_favorite.xml - 添加下拉刷新布局
+- app/src/main/res/layout/activity_my_items.xml - 添加下拉刷新布局
+- app/src/main/java/com/example/myapplication/MainActivity.java - 添加下拉刷新逻辑
+- app/src/main/java/com/example/myapplication/OrderActivity.java - 添加下拉刷新逻辑
+- app/src/main/java/com/example/myapplication/FavoriteActivity.java - 添加下拉刷新逻辑
+- app/src/main/java/com/example/myapplication/MyItemsActivity.java - 添加下拉刷新逻辑
+
 ## v1.5.0 (2026-06-14)
 
 ### 新增功能

@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.myapplication.model.Item;
 import com.example.myapplication.model.PageResult;
@@ -24,6 +26,7 @@ import java.util.concurrent.Executors;
 public class FavoriteActivity extends AppCompatActivity {
 
     private LinearLayout llItems;
+    private SwipeRefreshLayout swipeRefresh;
     private ApiService apiService;
     private ExecutorService executorService;
     private Long userId;
@@ -40,8 +43,17 @@ public class FavoriteActivity extends AppCompatActivity {
 
     private void initViews() {
         llItems = findViewById(R.id.ll_items);
+        swipeRefresh = findViewById(R.id.swipe_refresh);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
+
+        // 设置下拉刷新
+        swipeRefresh.setColorSchemeColors(
+                Color.parseColor("#6b46c1"),
+                Color.parseColor("#805AD5"),
+                Color.parseColor("#9F7AEA")
+        );
+        swipeRefresh.setOnRefreshListener(this::loadFavorites);
     }
 
     private void loadUserInfo() {
@@ -74,6 +86,7 @@ public class FavoriteActivity extends AppCompatActivity {
     }
 
     private void displayItems(List<Item> items) {
+        swipeRefresh.setRefreshing(false);
         llItems.removeAllViews();
 
         if (items == null || items.isEmpty()) {

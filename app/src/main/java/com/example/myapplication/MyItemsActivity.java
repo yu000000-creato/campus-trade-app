@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.myapplication.model.Item;
 import com.example.myapplication.model.PageResult;
@@ -30,6 +32,7 @@ public class MyItemsActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private TextView tvEmpty;
+    private SwipeRefreshLayout swipeRefresh;
     private ItemAdapter adapter;
     private List<Item> itemList = new ArrayList<>();
     private ApiService apiService;
@@ -48,6 +51,7 @@ public class MyItemsActivity extends AppCompatActivity {
     private void initViews() {
         recyclerView = findViewById(R.id.recyclerView);
         tvEmpty = findViewById(R.id.tv_empty);
+        swipeRefresh = findViewById(R.id.swipe_refresh);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
 
@@ -57,6 +61,14 @@ public class MyItemsActivity extends AppCompatActivity {
         adapter = new ItemAdapter();
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+
+        // 设置下拉刷新
+        swipeRefresh.setColorSchemeColors(
+                Color.parseColor("#667eea"),
+                Color.parseColor("#764ba2"),
+                Color.parseColor("#6B8DD6")
+        );
+        swipeRefresh.setOnRefreshListener(this::loadMyItems);
     }
 
     private void loadMyItems() {
@@ -72,12 +84,14 @@ public class MyItemsActivity extends AppCompatActivity {
                     itemList.clear();
                     itemList.addAll(result.getData().getList());
                     runOnUiThread(() -> {
+                        swipeRefresh.setRefreshing(false);
                         adapter.notifyDataSetChanged();
                         tvEmpty.setVisibility(itemList.isEmpty() ? View.VISIBLE : View.GONE);
                         recyclerView.setVisibility(itemList.isEmpty() ? View.GONE : View.VISIBLE);
                     });
                 } else {
                     runOnUiThread(() -> {
+                        swipeRefresh.setRefreshing(false);
                         tvEmpty.setVisibility(View.VISIBLE);
                         recyclerView.setVisibility(View.GONE);
                     });
@@ -85,6 +99,7 @@ public class MyItemsActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.e("MyItemsActivity", "Load items error: " + e.getMessage());
                 runOnUiThread(() -> {
+                    swipeRefresh.setRefreshing(false);
                     tvEmpty.setVisibility(View.VISIBLE);
                     recyclerView.setVisibility(View.GONE);
                 });

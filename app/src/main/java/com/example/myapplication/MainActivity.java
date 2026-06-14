@@ -21,6 +21,7 @@ import android.widget.AdapterView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.example.myapplication.model.Category;
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView rvItems;
     private ItemAdapter itemAdapter;
     private Spinner spinnerSort;
+    private SwipeRefreshLayout swipeRefresh;
     private ApiService apiService;
     private ExecutorService executorService;
     private String currentUsername;
@@ -75,9 +77,17 @@ public class MainActivity extends AppCompatActivity {
         llCategories = findViewById(R.id.ll_categories);
         rvItems = findViewById(R.id.rv_items);
         rvItems.setLayoutManager(new LinearLayoutManager(this));
+        swipeRefresh = findViewById(R.id.swipe_refresh);
         spinnerSort = findViewById(R.id.spinner_sort);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
+
+        // 设置下拉刷新颜色
+        swipeRefresh.setColorSchemeColors(
+                Color.parseColor("#667eea"),
+                Color.parseColor("#764ba2"),
+                Color.parseColor("#6B8DD6")
+        );
 
         // 设置排序选项
         String[] sortOptions = {"最新发布", "价格从低到高", "价格从高到低", "按浏览次数"};
@@ -140,6 +150,17 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.tab_profile).setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
             startActivity(intent);
+        });
+
+        // 设置下拉刷新监听
+        swipeRefresh.setOnRefreshListener(() -> {
+            currentPage = 1;
+            hasMore = true;
+            if (currentCategoryId != null) {
+                filterByCategory(currentCategoryId);
+            } else {
+                loadItems();
+            }
         });
 
         // 添加RecyclerView滚动监听，实现自动加载更多
@@ -386,6 +407,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void displayItems(List<Item> items) {
+        swipeRefresh.setRefreshing(false);
         if (items == null || items.isEmpty()) {
             itemAdapter = new ItemAdapter(new ArrayList<>());
             rvItems.setAdapter(itemAdapter);

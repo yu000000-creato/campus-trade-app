@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.myapplication.model.OrderResponse;
 import com.example.myapplication.model.PageResult;
@@ -26,6 +27,7 @@ import java.util.concurrent.Executors;
 public class OrderActivity extends AppCompatActivity {
 
     private LinearLayout llOrders;
+    private SwipeRefreshLayout swipeRefresh;
     private ApiService apiService;
     private ExecutorService executorService;
     private Long userId;
@@ -44,8 +46,17 @@ public class OrderActivity extends AppCompatActivity {
 
     private void initViews() {
         llOrders = findViewById(R.id.ll_orders);
+        swipeRefresh = findViewById(R.id.swipe_refresh);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
+
+        // 设置下拉刷新
+        swipeRefresh.setColorSchemeColors(
+                Color.parseColor("#6b46c1"),
+                Color.parseColor("#805AD5"),
+                Color.parseColor("#9F7AEA")
+        );
+        swipeRefresh.setOnRefreshListener(this::loadOrders);
 
         // 初始化状态筛选 Tab
         tabs = new TextView[6];
@@ -128,6 +139,7 @@ public class OrderActivity extends AppCompatActivity {
     }
 
     private void displayOrders(List<OrderResponse> orders) {
+        swipeRefresh.setRefreshing(false);
         llOrders.removeAllViews();
 
         if (orders == null || orders.isEmpty()) {
