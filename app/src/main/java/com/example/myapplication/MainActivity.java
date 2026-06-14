@@ -488,6 +488,9 @@ public class MainActivity extends AppCompatActivity {
                     itemHolder.ivImage.setImageResource(R.drawable.ic_launcher_background);
                 }
 
+                // 图片点击预览
+                itemHolder.ivImage.setOnClickListener(v -> showImagePreview(item));
+                // 整个item点击查看详情
                 itemHolder.itemView.setOnClickListener(v -> showItemDetail(item));
             }
         }
@@ -542,6 +545,23 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, ItemDetailActivity.class);
         intent.putExtra("item_id", item.getId());
         startActivity(intent);
+    }
+
+    private void showImagePreview(Item item) {
+        if (item.getImages() == null || item.getImages().isEmpty()) {
+            return;
+        }
+        try {
+            List<String> images = new Gson().fromJson(item.getImages(), new TypeToken<List<String>>() {}.getType());
+            if (images != null && !images.isEmpty()) {
+                Intent intent = new Intent(MainActivity.this, ImagePreviewActivity.class);
+                intent.putStringArrayListExtra(ImagePreviewActivity.EXTRA_IMAGE_URLS, new ArrayList<>(images));
+                intent.putExtra(ImagePreviewActivity.EXTRA_CURRENT_INDEX, 0);
+                startActivity(intent);
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "Parse images error: " + e.getMessage());
+        }
     }
 
     @Override

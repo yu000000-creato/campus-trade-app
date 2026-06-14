@@ -75,6 +75,10 @@
         <activity
             android:name=".OrderDetailActivity"
             android:exported="false" />
+            
+        <activity
+            android:name=".ImagePreviewActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -6,28 +6,35 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.myapplication.model.Item;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ItemDetailActivity extends AppCompatActivity {
 
     private TextView tvTitle, tvDesc, tvPrice, tvOriginalPrice, tvSeller, tvViewCount, tvCategory;
+    private ImageView ivItemImage;
+    private TextView tvImageHint;
     private Button btnBuy, btnFavorite, btnChat;
     private ApiService apiService;
     private ExecutorService executorService;
     private Item item;
     private Long userId;
+    private List<String> imageUrls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +53,24 @@ public class ItemDetailActivity extends AppCompatActivity {
         tvOriginalPrice = findViewById(R.id.tv_original_price);
         tvViewCount = findViewById(R.id.tv_view_count);
         tvCategory = findViewById(R.id.tv_category);
+        ivItemImage = findViewById(R.id.iv_item_image);
+        tvImageHint = findViewById(R.id.tv_image_hint);
         btnBuy = findViewById(R.id.btn_buy);
         btnFavorite = findViewById(R.id.btn_favorite);
         btnChat = findViewById(R.id.btn_chat);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
+        imageUrls = new ArrayList<>();
+
+        // 图片点击预览
+        ivItemImage.setOnClickListener(v -> {
+            if (imageUrls != null && !imageUrls.isEmpty()) {
+                Intent intent = new Intent(ItemDetailActivity.this, ImagePreviewActivity.class);
+                intent.putStringArrayListExtra(ImagePreviewActivity.EXTRA_IMAGE_URLS, new ArrayList<>(imageUrls));
+                intent.putExtra(ImagePreviewActivity.EXTRA_CURRENT_INDEX, 0);
+                startActivity(intent);
+            }
+        });
     }
 
     private void loadUserInfo() {
@@ -86,9 +106,42 @@ public class ItemDetailActivity extends AppCompatActivity {
         tvViewCount.setText("浏览次数: " + item.getViewCount());
         tvCategory.setText("分类: " + getCategoryName(item.getCategoryId()));
 
+        // 显示商品图片
+        loadItemImage(item.getImages());
+
         btnBuy.setOnClickListener(v -> createOrder());
         btnFavorite.setOnClickListener(v -> toggleFavorite());
         btnChat.setOnClickListener(v -> chatWithSeller());
+    }
+
+    private void loadItemImage(String imagesJson) {
+        imageUrls.clear();
+        if (imagesJson != null && !imagesJson.isEmpty()) {
+            try {
+                List<String> images = new Gson().fromJson(imagesJson, new TypeToken<List<String>>() {}.getType());
+                if (images != null && !images.isEmpty()) {
+                    imageUrls.addAll(images);
+                    String imageUrl = images.get(0);
+                    // 处理相对路径
+                    if (imageUrl.startsWith("/")) {
+                        imageUrl = "http://10.0.2.2:8080" + imageUrl;
+                    }
+                    Glide.with(this)
+                            .load(imageUrl)
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .error(R.drawable.ic_launcher_background)
+                            .centerCrop()
+                            .into(ivItemImage);
+                    tvImageHint.setVisibility(View.VISIBLE);
+                    return;
+                }
+            } catch (Exception e) {
+                Log.e("ItemDetailActivity", "Parse images error: " + e.getMessage());
+            }
+        }
+        // 没有图片时显示默认图
+        ivItemImage.setImageResource(R.drawable.ic_launcher_background);
+        tvImageHint.setVisibility(View.GONE);
     }
 
     private String getCategoryName(Long categoryId) {

@@ -1,5 +1,33 @@
 # 版本变更日志
 
+## v1.8.0 (2026-06-14)
+
+### 新增功能
+
+1. **商品图片预览功能**
+   - 商品详情页顶部显示商品图片
+   - 点击商品图片进入全屏预览
+   - 商品列表中点击图片可预览
+   - 支持多张图片切换查看
+   - 显示当前图片序号
+
+### 界面改进
+
+- 商品详情页布局优化，增加图片展示区域
+- 图片预览页全屏黑色背景，更好的视觉效果
+
+### 文件变更
+
+**新增文件:**
+- app/src/main/java/com/example/myapplication/ImagePreviewActivity.java
+- app/src/main/res/layout/activity_image_preview.xml
+
+**修改文件:**
+- app/src/main/java/com/example/myapplication/ItemDetailActivity.java
+- app/src/main/java/com/example/myapplication/MainActivity.java
+- app/src/main/res/layout/activity_item_detail.xml
+- app/src/main/AndroidManifest.xml
+
 ## v1.7.0 (2026-06-14)
 
 ### 新增功能
