@@ -2,27 +2,36 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.model.User;
 import com.example.myapplication.network.ApiService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    private static final int REQUEST_IMAGE_PICK = 1;
     private TextView tvUsername, tvRealName, tvStudentId, tvPhone;
+    private ImageView ivAvatar;
     private LinearLayout llLogout;
     private ApiService apiService;
     private ExecutorService executorService;
@@ -42,6 +51,7 @@ public class ProfileActivity extends AppCompatActivity {
         tvRealName = findViewById(R.id.tv_real_name);
         tvStudentId = findViewById(R.id.tv_student_id);
         tvPhone = findViewById(R.id.tv_phone);
+        ivAvatar = findViewById(R.id.iv_avatar);
         llLogout = findViewById(R.id.ll_logout);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
@@ -56,6 +66,56 @@ public class ProfileActivity extends AppCompatActivity {
         findViewById(R.id.ll_settings).setOnClickListener(v -> {
             Intent intent = new Intent(ProfileActivity.this, SettingsActivity.class);
             startActivity(intent);
+        });
+
+        ivAvatar.setOnClickListener(v -> selectImage());
+    }
+
+    private void selectImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_IMAGE_PICK);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK && data != null) {
+            Uri imageUri = data.getData();
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
+                uploadAvatar(bitmap);
+            } catch (IOException e) {
+                Log.e("ProfileActivity", "Failed to get image: " + e.getMessage());
+                Toast.makeText(this, "获取图片失败", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void uploadAvatar(Bitmap bitmap) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+        byte[] imageBytes = baos.toByteArray();
+
+        executorService.execute(() -> {
+            try {
+                String response = apiService.uploadAvatar(userId, imageBytes);
+                Gson gson = new Gson();
+                Result<User> result = gson.fromJson(response, new TypeToken<Result<User>>() {}.getType());
+
+                runOnUiThread(() -> {
+                    if (result != null && result.isSuccess()) {
+                        Toast.makeText(ProfileActivity.this, "头像上传成功", Toast.LENGTH_SHORT).show();
+                        loadUserInfo();
+                    } else {
+                        Toast.makeText(ProfileActivity.this, "头像上传失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) {
+                Log.e("ProfileActivity", "Upload avatar error: " + e.getMessage());
+                runOnUiThread(() -> {
+                    Toast.makeText(ProfileActivity.this, "头像上传失败", Toast.LENGTH_SHORT).show();
+                });
+            }
         });
     }
 
@@ -89,7 +149,16 @@ public class ProfileActivity extends AppCompatActivity {
                             .putString("real_name", user.getRealName())
                             .putString("student_id", user.getStudentId())
                             .putString("phone", user.getPhone())
+                            .putString("avatar", user.getAvatar())
                             .apply();
+
+                        // 加载头像
+                        if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                            Glide.with(ProfileActivity.this)
+                                .load(user.getAvatar())
+                                .circleCrop()
+                                .into(ivAvatar);
+                        }
                     });
                 }
             } catch (Exception e) {

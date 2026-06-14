@@ -7,7 +7,9 @@ import com.example.campustrade.dto.response.UserResponse;
 import com.example.campustrade.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/users")
@@ -44,5 +46,11 @@ public class UserController {
     public Result<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return Result.success();
+    }
+
+    @PostMapping(value = "/{id}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<UserResponse> uploadAvatar(@PathVariable Long id, @RequestParam("avatar") MultipartFile file) {
+        UserResponse response = userService.uploadAvatar(id, file);
+        return Result.success("头像上传成功", response);
     }
 }

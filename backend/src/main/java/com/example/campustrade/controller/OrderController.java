@@ -30,16 +30,18 @@ public class OrderController {
     public Result<PageResult<OrderResponse>> listByBuyer(
             @PathVariable Long buyerId,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(orderService.listByBuyer(buyerId, page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Integer status) {
+        return Result.success(orderService.listByBuyer(buyerId, page, size, status));
     }
 
     @GetMapping("/seller/{sellerId}")
     public Result<PageResult<OrderResponse>> listBySeller(
             @PathVariable Long sellerId,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(orderService.listBySeller(sellerId, page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Integer status) {
+        return Result.success(orderService.listBySeller(sellerId, page, size, status));
     }
 
     @PutMapping("/{id}/status")

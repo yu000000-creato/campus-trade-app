@@ -8,14 +8,29 @@ import com.example.campustrade.exception.BusinessException;
 import com.example.campustrade.repository.UserRepository;
 import com.example.campustrade.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+
+    @Value("${file.upload-dir:./uploads/}")
+    private String uploadDir;
+
+    @Value("${server.port:8080}")
+    private String serverPort;
 
     @Override
     @Transactional
@@ -115,6 +130,55 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(404, "用户不存在");
         }
         userRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse uploadAvatar(Long id, MultipartFile file) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(404, "用户不存在"));
+
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(400, "请选择要上传的图片");
+        }
+
+        // 验证文件类型
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BusinessException(400, "请上传有效的图片文件");
+        }
+
+        try {
+            // 确保上传目录存在
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // 生成唯一文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String newFilename = UUID.randomUUID().toString() + extension;
+
+            // 保存文件
+            Path filePath = uploadPath.resolve(newFilename);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            // 构建头像URL
+            String avatarUrl = "http://localhost:" + serverPort + "/uploads/" + newFilename;
+
+            // 更新用户头像
+            user.setAvatar(avatarUrl);
+            User updatedUser = userRepository.save(user);
+
+            return toResponse(updatedUser);
+
+        } catch (IOException e) {
+            throw new BusinessException(500, "图片上传失败: " + e.getMessage());
+        }
     }
 
     private UserResponse toResponse(User user) {

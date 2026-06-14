@@ -12,9 +12,9 @@ public interface OrderService {
 
     OrderResponse getByOrderNo(String orderNo);
 
-    PageResult<OrderResponse> listByBuyer(Long buyerId, Integer page, Integer size);
+    PageResult<OrderResponse> listByBuyer(Long buyerId, Integer page, Integer size, Integer status);
 
-    PageResult<OrderResponse> listBySeller(Long sellerId, Integer page, Integer size);
+    PageResult<OrderResponse> listBySeller(Long sellerId, Integer page, Integer size, Integer status);
 
     OrderResponse updateStatus(Long id, Integer status);
 

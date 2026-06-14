@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -28,6 +29,8 @@ public class OrderActivity extends AppCompatActivity {
     private ApiService apiService;
     private ExecutorService executorService;
     private Long userId;
+    private Integer currentStatus = null; // null 表示全部
+    private TextView[] tabs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,40 @@ public class OrderActivity extends AppCompatActivity {
         llOrders = findViewById(R.id.ll_orders);
         apiService = ApiService.getInstance();
         executorService = Executors.newSingleThreadExecutor();
+
+        // 初始化状态筛选 Tab
+        tabs = new TextView[6];
+        tabs[0] = findViewById(R.id.tab_all);
+        tabs[1] = findViewById(R.id.tab_pending_payment);
+        tabs[2] = findViewById(R.id.tab_pending_shipment);
+        tabs[3] = findViewById(R.id.tab_pending_receipt);
+        tabs[4] = findViewById(R.id.tab_completed);
+        tabs[5] = findViewById(R.id.tab_cancelled);
+
+        // 设置 Tab 点击事件
+        tabs[0].setOnClickListener(v -> selectTab(0, null));
+        tabs[1].setOnClickListener(v -> selectTab(1, 1));
+        tabs[2].setOnClickListener(v -> selectTab(2, 2));
+        tabs[3].setOnClickListener(v -> selectTab(3, 3));
+        tabs[4].setOnClickListener(v -> selectTab(4, 4));
+        tabs[5].setOnClickListener(v -> selectTab(5, 5));
+    }
+
+    private void selectTab(int index, Integer status) {
+        // 更新 Tab 样式
+        for (int i = 0; i < tabs.length; i++) {
+            if (i == index) {
+                tabs[i].setTextColor(Color.parseColor("#6b46c1"));
+                tabs[i].setTypeface(null, android.graphics.Typeface.BOLD);
+            } else {
+                tabs[i].setTextColor(Color.parseColor("#666666"));
+                tabs[i].setTypeface(null, android.graphics.Typeface.NORMAL);
+            }
+        }
+
+        // 更新当前状态并重新加载订单
+        currentStatus = status;
+        loadOrders();
     }
 
     private void loadUserInfo() {
@@ -61,7 +98,10 @@ public class OrderActivity extends AppCompatActivity {
         executorService.execute(() -> {
             try {
                 Log.d("OrderActivity", "Current userId: " + userId);
-                String url = "orders/buyer/" + userId + "?page=1&size=10";
+                String url = "orders/buyer/" + userId + "?page=1&size=20";
+                if (currentStatus != null) {
+                    url += "&status=" + currentStatus;
+                }
                 Log.d("OrderActivity", "Request URL: " + url);
                 
                 String jsonResponse = apiService.getRaw(url);
@@ -134,13 +174,23 @@ public class OrderActivity extends AppCompatActivity {
             TextView tvStatus = new TextView(this);
             tvStatus.setText("状态: " + order.getStatusText());
             tvStatus.setTextSize(14);
-            tvStatus.setTextColor(0xFF6B46C1);
+            tvStatus.setTextColor(getStatusColor(order.getStatus()));
             tvStatus.setPadding(0, 8, 0, 0);
 
             orderLayout.addView(tvOrderNo);
             orderLayout.addView(tvItem);
             orderLayout.addView(tvPrice);
             orderLayout.addView(tvStatus);
+
+            // 点击查看订单详情
+            orderLayout.setOnClickListener(v -> {
+                Intent intent = new Intent(OrderActivity.this, OrderDetailActivity.class);
+                intent.putExtra("order_id", order.getId());
+                startActivity(intent);
+            });
+
+            // 添加点击效果
+            orderLayout.setBackgroundResource(R.drawable.ripple_white);
 
             // 如果订单状态是待付款，添加付款按钮和截止时间
             if (order.getStatus() == 1) {
@@ -218,6 +268,17 @@ public class OrderActivity extends AppCompatActivity {
         }
     }
 
+    private int getStatusColor(int status) {
+        switch (status) {
+            case 1: return 0xFFE53E3E; // 待付款 - 红色
+            case 2: return 0xFFED8936; // 待发货 - 橙色
+            case 3: return 0xFF3182CE; // 待收货 - 蓝色
+            case 4: return 0xFF38A169; // 已完成 - 绿色
+            case 5: return 0xFF718096; // 已取消 - 灰色
+            default: return 0xFF6B46C1;
+        }
+    }
+
     private int dpToPx(int dp) {
         float density = getResources().getDisplayMetrics().density;
         return (int) (dp * density + 0.5f);
@@ -259,6 +320,13 @@ public class OrderActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 从详情页返回时刷新列表
+        loadOrders();
     }
 
     @Override

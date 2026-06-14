@@ -89,9 +89,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PageResult<OrderResponse> listByBuyer(Long buyerId, Integer page, Integer size) {
+    public PageResult<OrderResponse> listByBuyer(Long buyerId, Integer page, Integer size, Integer status) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Order> orderPage = orderRepository.findByBuyerId(buyerId, pageable);
+        Page<Order> orderPage;
+        
+        if (status != null && status > 0) {
+            orderPage = orderRepository.findByBuyerIdAndStatus(buyerId, status, pageable);
+        } else {
+            orderPage = orderRepository.findByBuyerId(buyerId, pageable);
+        }
+        
         return PageResult.of(
                 orderPage.getContent().stream().map(this::toResponse).toList(),
                 orderPage.getTotalElements(),
@@ -101,9 +108,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public PageResult<OrderResponse> listBySeller(Long sellerId, Integer page, Integer size) {
+    public PageResult<OrderResponse> listBySeller(Long sellerId, Integer page, Integer size, Integer status) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Order> orderPage = orderRepository.findBySellerId(sellerId, pageable);
+        Page<Order> orderPage;
+        
+        if (status != null && status > 0) {
+            orderPage = orderRepository.findBySellerIdAndStatus(sellerId, status, pageable);
+        } else {
+            orderPage = orderRepository.findBySellerId(sellerId, pageable);
+        }
+        
         return PageResult.of(
                 orderPage.getContent().stream().map(this::toResponse).toList(),
                 orderPage.getTotalElements(),

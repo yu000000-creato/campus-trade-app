@@ -13,5 +13,10 @@ public class WebConfig implements WebMvcConfigurer {
         String imagesPath = "file:" + System.getProperty("user.dir") + "/backend/src/main/resources/images/";
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("classpath:/images/", imagesPath);
+        
+        // 添加上传目录支持
+        String uploadsPath = "file:" + System.getProperty("user.dir") + "/uploads/";
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations(uploadsPath);
     }
 }

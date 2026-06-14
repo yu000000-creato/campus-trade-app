@@ -233,6 +233,30 @@ public class ApiService {
         }
     }
 
+    public String uploadAvatar(Long userId, byte[] imageBytes) throws IOException {
+        String fullUrl = BASE_URL + "users/" + userId + "/avatar";
+        
+        RequestBody requestBody = new okhttp3.MultipartBody.Builder()
+                .setType(okhttp3.MultipartBody.FORM)
+                .addFormDataPart("avatar", "avatar.jpg",
+                        RequestBody.create(imageBytes, MediaType.parse("image/jpeg")))
+                .build();
+
+        Request request = new Request.Builder()
+                .url(fullUrl)
+                .post(requestBody)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("网络请求失败: " + response.code());
+            }
+            String json = response.body().string();
+            Log.d("ApiService", "Upload Avatar Response: " + json);
+            return json;
+        }
+    }
+
     private static class LocalDateTimeTypeAdapter extends com.google.gson.TypeAdapter<LocalDateTime> {
         private static final java.time.format.DateTimeFormatter FORMATTER = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 

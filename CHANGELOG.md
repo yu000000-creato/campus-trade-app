@@ -1,5 +1,47 @@
 # 版本变更日志
 
+## v1.5.0 (2026-06-14)
+
+### 新增功能
+
+1. **用户头像功能**
+   - 支持用户上传头像
+   - 个人中心展示用户头像
+   - 点击头像可选择相册图片上传
+   - 后端支持头像文件存储和访问
+
+2. **订单状态筛选**
+   - 订单页面添加状态筛选 Tab
+   - 支持筛选：全部/待付款/待发货/待收货/已完成/已取消
+   - 不同状态显示不同颜色标识
+
+3. **订单详情页面**
+   - 新增 OrderDetailActivity 订单详情页
+   - 显示订单状态、商品信息、订单信息、交易双方信息
+   - 根据订单状态显示不同操作按钮
+   - 支持付款、取消订单、确认收货、联系卖家等操作
+
+### 文件变更
+
+**新增文件:**
+- app/src/main/java/com/example/myapplication/OrderDetailActivity.java
+- app/src/main/res/layout/activity_order_detail.xml
+
+**修改文件:**
+- app/src/main/java/com/example/myapplication/ProfileActivity.java
+- app/src/main/java/com/example/myapplication/OrderActivity.java
+- app/src/main/java/com/example/myapplication/network/ApiService.java
+- app/src/main/res/layout/activity_profile.xml
+- app/src/main/res/layout/activity_order.xml
+- app/src/main/AndroidManifest.xml
+- backend/src/main/java/com/example/campustrade/controller/UserController.java
+- backend/src/main/java/com/example/campustrade/controller/OrderController.java
+- backend/src/main/java/com/example/campustrade/service/UserService.java
+- backend/src/main/java/com/example/campustrade/service/OrderService.java
+- backend/src/main/java/com/example/campustrade/service/impl/UserServiceImpl.java
+- backend/src/main/java/com/example/campustrade/service/impl/OrderServiceImpl.java
+- backend/src/main/java/com/example/campustrade/config/WebConfig.java
+
 ## v1.4.0 (2026-06-12)
 
 ### UI优化

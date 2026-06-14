@@ -22,6 +22,101 @@
             android:gravity="center"/>
     </LinearLayout>
 
+    <!-- 状态筛选 Tab -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:background="#ffffff">
+
+        <LinearLayout
+            android:id="@+id/ll_status_tabs"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <TextView
+                android:id="@+id/tab_all"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="全部"
+                android:textSize="14sp"
+                android:textColor="#6b46c1"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/ripple_white"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tab_pending_payment"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="待付款"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/ripple_white"/>
+
+            <TextView
+                android:id="@+id/tab_pending_shipment"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="待发货"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/ripple_white"/>
+
+            <TextView
+                android:id="@+id/tab_pending_receipt"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="待收货"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/ripple_white"/>
+
+            <TextView
+                android:id="@+id/tab_completed"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="已完成"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/ripple_white"/>
+
+            <TextView
+                android:id="@+id/tab_cancelled"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="已取消"
+                android:textSize="14sp"
+                android:textColor="#666666"
+                android:gravity="center"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@drawable/ripple_white"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#e0e0e0"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
