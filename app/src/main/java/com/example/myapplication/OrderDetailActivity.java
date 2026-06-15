@@ -20,13 +20,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.myapplication.model.OrderResponse;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.reflect.TypeToken;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class OrderDetailActivity extends AppCompatActivity {
 
@@ -82,7 +82,7 @@ public class OrderDetailActivity extends AppCompatActivity {
         ivBack = findViewById(R.id.iv_back);
 
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
         countdownHandler = new Handler(Looper.getMainLooper());
 
         ivBack.setOnClickListener(v -> finish());
@@ -435,14 +435,5 @@ public class OrderDetailActivity extends AppCompatActivity {
                 runOnUiThread(() -> Toast.makeText(this, "修改失败: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopCountdown();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
 }

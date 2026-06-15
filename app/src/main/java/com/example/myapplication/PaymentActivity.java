@@ -14,12 +14,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.myapplication.model.PaymentResponse;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class PaymentActivity extends AppCompatActivity {
 
@@ -55,7 +55,7 @@ public class PaymentActivity extends AppCompatActivity {
         btnPay = findViewById(R.id.btn_pay);
 
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
         gson = new Gson();
 
         // 获取订单信息
@@ -138,11 +138,4 @@ public class PaymentActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

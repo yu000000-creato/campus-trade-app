@@ -16,8 +16,9 @@ import com.example.myapplication.model.User;
 import com.example.myapplication.network.ApiService;
 import com.google.gson.Gson;
 
+import com.example.myapplication.util.AppExecutors;
+
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -42,7 +43,7 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btn_login);
         tvRegister = findViewById(R.id.tv_register);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
     }
 
     private void setupListeners() {
@@ -73,10 +74,6 @@ public class LoginActivity extends AppCompatActivity {
         executorService.execute(() -> {
             try {
                 Log.d("LoginActivity", "Attempting login with username: " + username);
-                
-                // 测试网络连接
-                String testResponse = apiService.getRaw("categories");
-                Log.d("LoginActivity", "Network test successful: " + testResponse);
                 
                 Gson gson = new Gson();
                 String jsonBody = gson.toJson(new LoginRequest(username, password));
@@ -133,11 +130,4 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

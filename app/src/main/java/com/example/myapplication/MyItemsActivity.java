@@ -8,8 +8,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,11 +24,12 @@ import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
 import com.google.gson.reflect.TypeToken;
 
+import com.example.myapplication.util.AppExecutors;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MyItemsActivity extends AppCompatActivity {
 
@@ -53,7 +56,7 @@ public class MyItemsActivity extends AppCompatActivity {
         tvEmpty = findViewById(R.id.tv_empty);
         swipeRefresh = findViewById(R.id.swipe_refresh);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
 
         SharedPreferences prefs = getSharedPreferences("campus_trade", MODE_PRIVATE);
         userId = prefs.getLong("user_id", 0);
@@ -133,17 +136,30 @@ public class MyItemsActivity extends AppCompatActivity {
             Integer status = item.getStatus();
             if (status != null) {
                 if (status == 1) {
-                    holder.tvStatus.setText("状态: 上架中");
+                    holder.tvStatus.setText("上架中");
                     holder.tvStatus.setTextColor(0xFF48BB78);
+                    holder.btnAction.setText("下架");
+                    holder.btnAction.setBackgroundColor(0xFFE53E3E);
+                    holder.btnAction.setOnClickListener(v -> toggleItemStatus(item.getId(), 2));
                 } else if (status == 2) {
-                    holder.tvStatus.setText("状态: 已下架");
+                    holder.tvStatus.setText("已下架");
                     holder.tvStatus.setTextColor(0xFFA0AEC0);
+                    holder.btnAction.setText("上架");
+                    holder.btnAction.setBackgroundColor(0xFF48BB78);
+                    holder.btnAction.setOnClickListener(v -> toggleItemStatus(item.getId(), 1));
                 } else {
-                    holder.tvStatus.setText("状态: 未知");
+                    holder.tvStatus.setText("状态未知");
                     holder.tvStatus.setTextColor(0xFF718096);
+                    holder.btnAction.setText("上架");
+                    holder.btnAction.setBackgroundColor(0xFF718096);
+                    holder.btnAction.setOnClickListener(v -> toggleItemStatus(item.getId(), 1));
                 }
             } else {
-                holder.tvStatus.setText("");
+                holder.tvStatus.setText("状态未知");
+                holder.tvStatus.setTextColor(0xFF718096);
+                holder.btnAction.setText("上架");
+                holder.btnAction.setBackgroundColor(0xFF48BB78);
+                holder.btnAction.setOnClickListener(v -> toggleItemStatus(item.getId(), 1));
             }
 
             holder.itemView.setOnClickListener(v -> {
@@ -160,6 +176,7 @@ public class MyItemsActivity extends AppCompatActivity {
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView tvTitle, tvPrice, tvOriginalPrice, tvCategory, tvStatus;
+            TextView btnAction;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -168,8 +185,39 @@ public class MyItemsActivity extends AppCompatActivity {
                 tvOriginalPrice = itemView.findViewById(R.id.tv_original_price);
                 tvCategory = itemView.findViewById(R.id.tv_category);
                 tvStatus = itemView.findViewById(R.id.tv_status);
+                btnAction = itemView.findViewById(R.id.btn_action);
             }
         }
+    }
+
+    // 切换商品上下架状态
+    private void toggleItemStatus(Long itemId, int targetStatus) {
+        executorService.execute(() -> {
+            try {
+                String jsonBody = "{\"status\": " + targetStatus + "}";
+                Result<Void> result = apiService.put("items/" + itemId + "/status", jsonBody, Void.class);
+                
+                if (result != null && result.isSuccess()) {
+                    runOnUiThread(() -> {
+                        String message = targetStatus == 1 ? "上架成功" : "下架成功";
+                        Toast.makeText(MyItemsActivity.this, message, Toast.LENGTH_SHORT).show();
+                        loadMyItems(); // 刷新商品列表
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        String message = targetStatus == 1 ? "上架失败" : "下架失败";
+                        String errorMsg = result != null ? result.getMessage() : message;
+                        Toast.makeText(MyItemsActivity.this, errorMsg, Toast.LENGTH_SHORT).show();
+                    });
+                }
+            } catch (Exception e) {
+                Log.e("MyItemsActivity", "Toggle status error: " + e.getMessage());
+                runOnUiThread(() -> {
+                    String message = targetStatus == 1 ? "上架失败: " + e.getMessage() : "下架失败: " + e.getMessage();
+                    Toast.makeText(MyItemsActivity.this, message, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private String getCategoryName(Long categoryId) {
@@ -180,11 +228,4 @@ public class MyItemsActivity extends AppCompatActivity {
         return "未知分类";
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

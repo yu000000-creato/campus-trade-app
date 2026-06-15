@@ -16,13 +16,13 @@ import com.bumptech.glide.Glide;
 import com.example.myapplication.model.Item;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ItemDetailActivity extends AppCompatActivity {
 
@@ -59,7 +59,7 @@ public class ItemDetailActivity extends AppCompatActivity {
         btnFavorite = findViewById(R.id.btn_favorite);
         btnChat = findViewById(R.id.btn_chat);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
         imageUrls = new ArrayList<>();
 
         // 图片点击预览
@@ -271,11 +271,4 @@ public class ItemDetailActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

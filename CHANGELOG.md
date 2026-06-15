@@ -1,5 +1,44 @@
 # 版本变更日志
 
+## v1.10.0 (2026-06-15)
+
+### 新增功能
+
+1. **商品上下架功能**
+   - 我的商品页面添加上下架按钮
+   - 支持卖家对商品进行上下架操作
+   - 按钮根据商品状态动态显示"上架"或"下架"
+
+### 性能优化
+
+1. **系统卡顿修复**
+   - 创建全局线程池管理类 `AppExecutors`
+   - 统一管理应用中的网络请求线程
+   - 限制并发线程数量为3，避免线程资源耗尽
+   - 移除所有Activity中的`executorService.shutdown()`调用
+
+2. **网络请求优化**
+   - 移除LoginActivity中不必要的网络测试请求
+   - 减少登录时的网络请求次数
+
+### 界面改进
+
+1. **按钮布局优化**
+   - 将操作按钮从Button改为TextView，完全控制样式
+   - 移除默认内边距，确保"下架"文字完整显示
+   - 优化布局结构，按钮与状态信息垂直居中对齐
+
+### 文件变更
+
+**新增文件:**
+- app/src/main/java/com/example/myapplication/util/AppExecutors.java - 全局线程池管理
+
+**修改文件:**
+- app/src/main/java/com/example/myapplication/MyItemsActivity.java - 添加上下架功能
+- app/src/main/java/com/example/myapplication/LoginActivity.java - 移除测试请求
+- app/src/main/res/layout/item_goods.xml - 优化按钮布局
+- app/src/main/java/com/example/myapplication/*.java - 使用全局线程池
+
 ## v1.9.0 (2026-06-14)
 
 ### 新增功能

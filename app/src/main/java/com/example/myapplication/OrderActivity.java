@@ -18,11 +18,11 @@ import com.example.myapplication.model.OrderResponse;
 import com.example.myapplication.model.PageResult;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class OrderActivity extends AppCompatActivity {
 
@@ -48,7 +48,7 @@ public class OrderActivity extends AppCompatActivity {
         llOrders = findViewById(R.id.ll_orders);
         swipeRefresh = findViewById(R.id.swipe_refresh);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
 
         // 设置下拉刷新
         swipeRefresh.setColorSchemeColors(
@@ -341,11 +341,4 @@ public class OrderActivity extends AppCompatActivity {
         loadOrders();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

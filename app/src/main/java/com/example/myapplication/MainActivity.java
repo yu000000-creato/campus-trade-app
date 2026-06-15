@@ -32,10 +32,11 @@ import com.example.myapplication.network.ApiService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import com.example.myapplication.util.AppExecutors;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         swipeRefresh = findViewById(R.id.swipe_refresh);
         spinnerSort = findViewById(R.id.spinner_sort);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
 
         // 设置下拉刷新颜色
         swipeRefresh.setColorSchemeColors(
@@ -564,11 +565,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

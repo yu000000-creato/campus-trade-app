@@ -16,12 +16,12 @@ import com.example.myapplication.model.Item;
 import com.example.myapplication.model.PageResult;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class FavoriteActivity extends AppCompatActivity {
 
@@ -45,7 +45,7 @@ public class FavoriteActivity extends AppCompatActivity {
         llItems = findViewById(R.id.ll_items);
         swipeRefresh = findViewById(R.id.swipe_refresh);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
 
         // 设置下拉刷新
         swipeRefresh.setColorSchemeColors(
@@ -164,11 +164,4 @@ public class FavoriteActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

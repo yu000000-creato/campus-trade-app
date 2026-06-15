@@ -18,13 +18,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myapplication.model.Result;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class PublishActivity extends AppCompatActivity {
 
@@ -58,7 +58,7 @@ public class PublishActivity extends AppCompatActivity {
         btnSelectImage = findViewById(R.id.btn_select_image);
         ivPreview = findViewById(R.id.iv_preview);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
 
         btnPublish.setOnClickListener(v -> publishItem());
         btnSelectImage.setOnClickListener(v -> selectImage());
@@ -190,11 +190,4 @@ public class PublishActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

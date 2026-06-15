@@ -19,13 +19,13 @@ import com.bumptech.glide.Glide;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.model.User;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -54,7 +54,7 @@ public class ProfileActivity extends AppCompatActivity {
         ivAvatar = findViewById(R.id.iv_avatar);
         llLogout = findViewById(R.id.ll_logout);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
 
         llLogout.setOnClickListener(v -> logout());
 
@@ -177,11 +177,4 @@ public class ProfileActivity extends AppCompatActivity {
         finish();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}

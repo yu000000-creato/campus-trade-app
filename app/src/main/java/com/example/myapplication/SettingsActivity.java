@@ -14,11 +14,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.myapplication.model.Result;
 import com.example.myapplication.model.User;
 import com.example.myapplication.network.ApiService;
+import com.example.myapplication.util.AppExecutors;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -41,7 +41,7 @@ public class SettingsActivity extends AppCompatActivity {
         llChangePassword = findViewById(R.id.ll_change_password);
         llAbout = findViewById(R.id.ll_about);
         apiService = ApiService.getInstance();
-        executorService = Executors.newSingleThreadExecutor();
+        executorService = AppExecutors.getInstance().getNetworkExecutor();
 
         SharedPreferences prefs = getSharedPreferences("campus_trade", MODE_PRIVATE);
         userId = prefs.getLong("user_id", 0);
@@ -202,11 +202,4 @@ public class SettingsActivity extends AppCompatActivity {
         builder.show();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-        }
     }
-}
